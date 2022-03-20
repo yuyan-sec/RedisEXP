@@ -82,7 +82,7 @@ RedisExp.exe -rhost 192.168.211.130 -lhost 192.168.211.1 -lua -console
 
 本工具基于大量优秀文章和工具才得以编写完成，非常感谢这些无私的分享者！
 
-- https://github.com/tporadowski/redis
+- https://github.com/zyylhn/redis_rce
 - https://github.com/0671/RabR
 - https://github.com/r35tart/RedisWriteFile
 
