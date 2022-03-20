@@ -54,7 +54,7 @@ func GetShell() {
 	Info(dir2)
 	Success(RedisCmd(dir2))
 
-	db := fmt.Sprintf("config set dbfilename %v", redisDbfilename)
+	db := fmt.Sprintf("config set dbfilename %v", redisDbFilename)
 	Info(db)
 	Success(RedisCmd(db))
 

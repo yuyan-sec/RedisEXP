@@ -78,7 +78,7 @@ func CloseSlave(s string) {
 	Info(dir)
 	Success(RedisCmd(dir))
 
-	db := fmt.Sprintf("config set dbfilename %v", redisDbfilename)
+	db := fmt.Sprintf("config set dbfilename %v", redisDbFilename)
 	Info(db)
 	Success(RedisCmd(db))
 }

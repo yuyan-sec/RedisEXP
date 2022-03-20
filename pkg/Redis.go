@@ -4,54 +4,41 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"log"
-	"os"
 	"regexp"
 	"strings"
 	"time"
 )
 
 var (
-	Rdb                       *redis.Client
-	Lhost                     string
-	Lport                     string
-	Rhost                     string
-	Rport                     string
-	PWD                       string
-	redisDir, redisDbfilename string
+	Rdb             *redis.Client
+	Lhost           string
+	Lport           string
+	Rhost           string
+	Rport           string
+	redisDir        string
+	redisDbFilename string
 )
 
 // RedisClient 连接 Redis
-func RedisClient() {
+func RedisClient(pwd string) (err error) {
+
 	Rdb = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", Rhost, Rport),
-		Password: PWD, // 密码认证
+		Password: pwd, // 密码认证
 	})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 
 	defer cancel()
 
-	_, err := Rdb.Ping(ctx).Result()
+	pong, err := Rdb.Ping(ctx).Result()
 	if err != nil {
-		if strings.Contains(err.Error(), "context deadline exceeded") {
-			Info("Redis 连接超时")
-			os.Exit(0)
-		}
-
-		Err(err)
-
-		if strings.Contains(err.Error(), "NOAUTH Authentication required.") {
-			Info("Redis 需要密码认证")
-			os.Exit(0)
-		}
-		if strings.Contains(err.Error(), "ERR invalid password") {
-			log.Println("Redis 认证密码错误!")
-			os.Exit(0)
-		}
-
-		return
+		return err
 	}
+	if strings.Contains(pong, "PONG") {
+		redisVersion()
+	}
+	return nil
 
 }
 
@@ -75,21 +62,24 @@ func RedisCmd(cmd string) interface{} {
 }
 
 // 获取 Redis 基本信息
-func redisVersion() {
-	Info("获取 Redis 基本信息")
+func redisVersion() bool {
 	info := RedisCmd("info")
-	os := redisRe(info, "os:.*")
-	version := redisRe(info, "redis_version:.*")
-	Success(os)
-	Success(version)
-	dir := RedisCmd("config get dir")
-	redisDir = redisString(dir)[4:]
-	Success(redisDir)
+	if strings.Contains(info.(string), "redis_version") {
+		Info("获取 Redis 基本信息")
+		os := redisRe(info, "os:.*")
+		version := redisRe(info, "redis_version:.*")
+		Success(os)
+		Success(version)
+		dir := RedisCmd("config get dir")
+		redisDir = redisString(dir)[4:]
+		Success(redisDir)
 
-	file := RedisCmd("config get dbfilename")
-	redisDbfilename = redisString(file)[11:]
-	Success(redisDbfilename)
-
+		file := RedisCmd("config get dbfilename")
+		redisDbFilename = redisString(file)[11:]
+		Success(redisDbFilename)
+		return true
+	}
+	return false
 }
 
 // 正则

