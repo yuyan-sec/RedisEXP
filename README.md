@@ -1,4 +1,4 @@
-### Redis 漏洞利用工具
+## Redis 漏洞利用工具
 
 帮助：`-h`
 
@@ -77,7 +77,6 @@ RedisExp.exe -rhost 192.168.211.130 -lua -console
 ![4](images/4.png)
 
 
-
 #### 爆破 Redis 密码
 
 ```
@@ -85,7 +84,6 @@ RedisExp.exe -r 192.168.211.128 -brute -pwdf ../pass.txt
 ```
 
 ![4](images/5.png)
-
 
 
 ### 参考
