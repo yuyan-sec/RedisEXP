@@ -88,7 +88,7 @@ RedisExp.exe -r 192.168.211.128 -brute -pwdf ../pass.txt
 
 ### 参考
 
-本工具基于大量优秀文章和工具才得以编写完成，非常感谢这些无私的分享者！
+本工具基于大量优秀文章和工具才得以~~编写~~ 抄写完成，非常感谢这些无私的分享者！
 
 - https://github.com/zyylhn/redis_rce
 - https://github.com/0671/RabR
