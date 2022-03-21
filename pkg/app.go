@@ -1,9 +1,10 @@
 package pkg
 
 import (
-	"github.com/urfave/cli/v2"
 	"os"
 	"strings"
+
+	"github.com/urfave/cli/v2"
 )
 
 var (
@@ -154,9 +155,6 @@ func Run() {
 			if strings.Contains(err.Error(), "context deadline exceeded") {
 				Info("Redis 连接超时")
 			}
-
-			//Err(err)
-
 			if strings.Contains(err.Error(), "NOAUTH Authentication required.") {
 				Info("Redis 需要密码认证")
 			}
@@ -184,7 +182,6 @@ func Run() {
 					RunCmd(CMD)
 					CloseSlave("exec")
 				}
-				break
 
 			case upload:
 				if Rfile == "" || Lfile == "" || Lhost == "" {
@@ -192,7 +189,6 @@ func Run() {
 					os.Exit(0)
 				}
 				RedisUpload()
-				break
 
 			case lua:
 				if console {
@@ -204,11 +200,9 @@ func Run() {
 					}
 					RedisLua(CMD)
 				}
-				break
 
 			case getshell:
 				GetShell()
-				break
 			}
 		}
 	}
@@ -218,7 +212,7 @@ func Run() {
 			Info("缺少字典参数 -pwdf")
 			os.Exit(0)
 		}
-		readPass(pwdf)
+		readFile(pwdf)
 		brutePWD()
 		os.Exit(0)
 	}

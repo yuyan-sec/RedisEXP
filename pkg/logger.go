@@ -5,9 +5,10 @@ import (
 )
 
 const (
-	pINFO    = "[+] "
-	pSUCCESS = "[*] "
-	pErr     = "[-] "
+	pINFO     = "[+] "
+	pSUCCESS  = "[*] "
+	pSUCCESS2 = "[*] "
+	pErr      = "[-] "
 )
 
 func Info(format string) {
@@ -20,4 +21,8 @@ func Err(format error) {
 
 func Success(format interface{}) {
 	log.Println(pSUCCESS, format)
+}
+
+func SuccessStr(format interface{}) {
+	log.Println(pSUCCESS2, format)
 }

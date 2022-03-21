@@ -3,10 +3,10 @@ package pkg
 import (
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	"regexp"
 	"strings"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 )
 
 var (
@@ -66,8 +66,8 @@ func redisVersion() bool {
 	info := RedisCmd("info")
 	if strings.Contains(info.(string), "redis_version") {
 		Info("获取 Redis 基本信息")
-		os := redisRe(info, "os:.*")
-		version := redisRe(info, "redis_version:.*")
+		os := ReString(info, "os:.*")
+		version := ReString(info, "redis_version:.*")
 		Success(os)
 		Success(version)
 		dir := RedisCmd("config get dir")
@@ -80,24 +80,4 @@ func redisVersion() bool {
 		return true
 	}
 	return false
-}
-
-// 正则
-func redisRe(info interface{}, s string) string {
-	reg := regexp.MustCompile(s)
-	list := reg.FindAllStringSubmatch(info.(string), -1)
-	return list[0][0]
-}
-
-func redisString(i interface{}) string {
-	switch v := i.(type) {
-	case []interface{}:
-		s := ""
-		for _, i := range v {
-			s += i.(string) + " "
-		}
-		return s
-	}
-	return ""
-
 }

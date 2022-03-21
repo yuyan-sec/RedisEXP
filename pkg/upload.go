@@ -22,7 +22,7 @@ func RedisUpload() {
 	}
 
 	if fi.Size() < 9 {
-		Info("当前文件大小：" + string(fi.Size()) + " 个字节，不能上传小于 9 个字节，因为可能会把Redis打崩哦")
+		Info(fmt.Sprintf("当前文件大小：%d 个字节，不能上传小于 9 个字节, 因为可能会把Redis打崩哦", fi.Size()))
 		os.Exit(0)
 	}
 
@@ -54,7 +54,7 @@ func RedisUpload() {
 	Success(RedisCmd(file))
 
 	Listen()
-	Success("上传成功文件")
+	Success(fmt.Sprintf("文件上传成功：%v", Rfile))
 
 	CloseSlave("upload")
 
