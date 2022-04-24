@@ -11,7 +11,7 @@ import (
 // Listen 开启TCP端口
 func Listen() {
 	Info("开启TCP服务")
-	addr := fmt.Sprintf("%v:%v", Lhost, Lport)
+	addr := fmt.Sprintf("0.0.0.0:%v", Lport)
 	Info(addr)
 
 	var wg sync.WaitGroup
