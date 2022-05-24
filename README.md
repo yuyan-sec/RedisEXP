@@ -54,14 +54,14 @@ RedisExp.exe -rhost 192.168.211.131 -import
 
 ```
 cmd
-├── crontab.txt		默认写入的Linux下的crontab定时任务文件，用前需要修改
-├── exp.dll			默认导入的Windows Redis模块
-├── exp.so			导入的Linux Redis模块
-├── main.go			编译攻击主程序
-├── out.json		导出导入的 Redis 数据
-├── pass.txt		爆破字典
-├── shell.txt		默认写入的 Webshell 文件，用前需要修改
-└── ssh.txt			默认写入的Linux下的ssh公钥文件，用前需要修改
+├── crontab.txt    默认写入的Linux下的crontab定时任务文件，用前需要修改
+├── exp.dll        默认导入的Windows Redis模块
+├── exp.so         导入的Linux Redis模块
+├── main.go        编译攻击主程序
+├── out.json       导出导入的 Redis 数据
+├── pass.txt       爆破字典
+├── shell.txt      默认写入的 Webshell 文件，用前需要修改
+└── ssh.txt        默认写入的Linux下的ssh公钥文件，用前需要修改
 
 ```
 
