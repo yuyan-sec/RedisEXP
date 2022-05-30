@@ -34,7 +34,7 @@ func echo(flag, path string) {
 		fmt.Print("设置Linux用户名: ")
 		fmt.Scanln(&dir)
 
-		if strings.Contains(dir, "root") {
+		if strings.EqualFold(dir, "root") {
 			dir = fmt.Sprintf("config set dir /%s/.ssh/", dir)
 		} else {
 			dir = fmt.Sprintf("config set dir /home/%s/.ssh/", dir)
