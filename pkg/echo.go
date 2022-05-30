@@ -36,6 +36,8 @@ func echo(flag, path string) {
 
 		if strings.EqualFold(dir, "root") {
 			dir = fmt.Sprintf("config set dir /%s/.ssh/", dir)
+		} else if strings.Contains(dir, "/"){
+			dir = fmt.Sprintf("config set dir %s", dir)
 		} else {
 			dir = fmt.Sprintf("config set dir /home/%s/.ssh/", dir)
 		}
