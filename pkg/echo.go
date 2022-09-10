@@ -13,11 +13,10 @@ func echo(flag, path string) {
 	var dir, dbfilename, webshell string
 	var save, helloWebShell = "save", "helloWebShell"
 
-	reader := bufio.NewReader(os.Stdin)
-
 	switch flag {
 	case "getshell":
 		fmt.Print("设置保存的路径: ")
+		reader := bufio.NewReader(os.Stdin)
 		dir, _ = reader.ReadString('\n')
 		dir = strings.TrimSpace(dir)
 		dir = fmt.Sprintf("config set dir %s", dir)
@@ -37,7 +36,7 @@ func echo(flag, path string) {
 
 	case "ssh":
 		fmt.Print("设置Linux用户名: ")
-		// reader := bufio.NewReader(os.Stdin)
+		reader := bufio.NewReader(os.Stdin)
 		dir, _ = reader.ReadString('\n')
 		dir = strings.TrimSpace(dir)
 
