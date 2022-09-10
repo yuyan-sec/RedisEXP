@@ -1,8 +1,10 @@
 package pkg
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 )
@@ -11,10 +13,13 @@ func echo(flag, path string) {
 	var dir, dbfilename, webshell string
 	var save, helloWebShell = "save", "helloWebShell"
 
+	reader := bufio.NewReader(os.Stdin)
+
 	switch flag {
 	case "getshell":
 		fmt.Print("设置保存的路径: ")
-		fmt.Scanln(&dir)
+		dir, _ = reader.ReadString('\n')
+		dir = strings.TrimSpace(dir)
 		dir = fmt.Sprintf("config set dir %s", dir)
 
 		fmt.Print("设置保存的文件名：")
@@ -32,11 +37,13 @@ func echo(flag, path string) {
 
 	case "ssh":
 		fmt.Print("设置Linux用户名: ")
-		fmt.Scanln(&dir)
+		// reader := bufio.NewReader(os.Stdin)
+		dir, _ = reader.ReadString('\n')
+		dir = strings.TrimSpace(dir)
 
 		if strings.EqualFold(dir, "root") {
 			dir = fmt.Sprintf("config set dir /%s/.ssh/", dir)
-		} else if strings.Contains(dir, "/"){
+		} else if strings.Contains(dir, "/") {
 			dir = fmt.Sprintf("config set dir %s", dir)
 		} else {
 			dir = fmt.Sprintf("config set dir /home/%s/.ssh/", dir)
