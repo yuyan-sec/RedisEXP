@@ -44,8 +44,21 @@ func RedisCmd(cmd string) interface{} {
 	ctx := context.Background()
 
 	var argsInterface []interface{}
+
+	fmt.Println("cmd=", cmd)
+	// 处理输入字符串有空格的问题
+	if strings.Contains(cmd, "\"") {
+		oldString := ReString(cmd, "\"(.*?)\"")
+		newString := strings.ReplaceAll(oldString, " ", "$")
+		cmd = strings.ReplaceAll(cmd, oldString, newString)
+		cmd = strings.ReplaceAll(cmd, "\"", "")
+	}
+
 	args := strings.Fields(cmd)
 	for _, arg := range args {
+		if strings.Contains(arg, "$") {
+			arg = strings.ReplaceAll(arg, "$", " ")
+		}
 		argsInterface = append(argsInterface, arg)
 	}
 
