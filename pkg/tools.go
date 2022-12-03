@@ -27,7 +27,9 @@ func readFile(file string) {
 	for {
 		var i string
 		line, err := r.ReadString('\n')
-		i = strings.Replace(line, "\r\n", "", -1)
+		// 解决 windows 和 linux 读取文件  换行和回车  的问题 
+		i = strings.Replace(line, "\r", "", -1)
+		i = strings.Replace(i, "\n", "", -1)
 		if err == io.EOF {
 			data = append(data, i)
 			return
