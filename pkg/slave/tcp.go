@@ -1,4 +1,4 @@
-package pkg
+package slave
 
 import (
 	"fmt"
@@ -6,36 +6,38 @@ import (
 	"net"
 	"strings"
 	"sync"
+
+	"RedisExp/pkg/logger"
 )
 
 // Listen 开启TCP端口
-func Listen() {
-	Info("开启TCP服务")
-	addr := fmt.Sprintf("0.0.0.0:%v", Lport)
-	Info(addr)
+func Listen(lport string, payload []byte) {
+	logger.Info("开启TCP服务")
+	addr := fmt.Sprintf("0.0.0.0:%v", lport)
+	logger.Info(addr)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 
 	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
 	if err != nil {
-		Err(err)
+		logger.Err("%v", err)
 	}
 
 	tcpListen, err := net.ListenTCP("tcp", tcpAddr)
 	if err != nil {
-		Err(err)
+		logger.Err("%v", err)
 	}
 
 	defer tcpListen.Close()
 
 	c, err := tcpListen.AcceptTCP()
 	if err != nil {
-		Err(err)
+		logger.Err("%v", err)
 	}
-	Info(c.RemoteAddr().String())
+	logger.Info(c.RemoteAddr().String())
 
-	go sendCmd(&wg, c)
+	go sendCmd(payload, &wg, c)
 	wg.Wait()
 
 	c.Close()
@@ -43,7 +45,7 @@ func Listen() {
 }
 
 // 读取dll进行主从
-func sendCmd(wg *sync.WaitGroup, c *net.TCPConn) {
+func sendCmd(payload []byte, wg *sync.WaitGroup, c *net.TCPConn) {
 
 	defer wg.Done()
 

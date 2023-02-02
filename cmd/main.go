@@ -1,7 +1,7 @@
 package main
 
 import (
-	"RedisExp/pkg"
+	"RedisExp/pkg/help"
 	"fmt"
 )
 
@@ -15,5 +15,5 @@ func main() {
 ╚═╝  ╚═╝╚══════╝╚═════╝ ╚═╝╚══════╝    ╚══════╝╚═╝  ╚═╝╚═╝
 `
 	fmt.Println(logo)
-	pkg.Help()
+	help.Help()
 }

