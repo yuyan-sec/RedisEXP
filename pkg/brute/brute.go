@@ -15,7 +15,7 @@ var wg sync.WaitGroup
 // 爆破密码
 func BrutePWD(rhost, rport, filename string) {
 
-	pwds, err := readFile(filename)
+	pwds, err := ReadFile(filename)
 	if err != nil {
 		logger.Err("%v", err)
 	}
@@ -49,7 +49,7 @@ func BrutePWD(rhost, rport, filename string) {
 }
 
 // 读取密码字典
-func readFile(filename string) ([]string, error) {
+func ReadFile(filename string) ([]string, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err

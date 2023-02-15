@@ -4,6 +4,7 @@ import (
 	"RedisExp/pkg/brute"
 	"RedisExp/pkg/conn"
 	"RedisExp/pkg/echo"
+	"RedisExp/pkg/gopher"
 	"RedisExp/pkg/logger"
 	"RedisExp/pkg/lua"
 	"RedisExp/pkg/slave"
@@ -42,6 +43,12 @@ var (
 	ssh bool
 
 	show bool
+
+	gopher_bool bool
+
+	gopher_ip string
+
+	gopher_file string
 )
 
 func init() {
@@ -77,6 +84,9 @@ func init() {
 
 	flag.BoolVar(&show, "show", false, "工具利用命令帮助")
 
+	flag.BoolVar(&gopher_bool, "gopher", false, "生成 Gopher SSRF Payload ")
+	flag.StringVar(&gopher_ip, "gip", "127.0.0.1:6379", "指定 Gopher SSRF Payload 的 ip:port")
+	flag.StringVar(&gopher_file, "gf", "", "指定 Payload 文件来生成 Gopher")
 }
 
 func Help() {
@@ -117,6 +127,22 @@ RedisExp.exe -rhost 192.168.211.131 -brute -pwdf ../pass.txt
 RedisExp.exe -rhost 192.168.211.131 -cli
 
 		`)
+	}
+
+	if gopher_bool {
+		if gopher_file == "" {
+			logger.Info("缺少 -gf 参数")
+			return
+		}
+		f, err := brute.ReadFile(gopher_file)
+		if err != nil {
+			logger.Err(err.Error())
+			return
+		}
+
+		gopher.GetGopher(gopher_ip, f)
+
+		return
 	}
 
 	if rhost == "" {
