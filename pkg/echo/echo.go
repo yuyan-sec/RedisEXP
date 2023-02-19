@@ -2,14 +2,19 @@ package echo
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
 
 	"RedisExp/pkg/conn"
 	"RedisExp/pkg/logger"
+
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 )
 
 func Echo(flag string) {
@@ -75,10 +80,22 @@ func Echo(flag string) {
 
 }
 
+// 把传进来的字符串转为 gbk (解决中文路径问题)
 func readString(str string) string {
 	reader := bufio.NewReader(os.Stdin)
 	str, _ = reader.ReadString('\n')
 	str = strings.TrimSpace(str)
 
-	return str
+	gbk, _ := Utf8ToGbk([]byte(str))
+
+	return string(gbk)
+}
+
+func Utf8ToGbk(s []byte) ([]byte, error) {
+	reader := transform.NewReader(bytes.NewReader(s), simplifiedchinese.GBK.NewEncoder())
+	d, e := ioutil.ReadAll(reader)
+	if e != nil {
+		return nil, e
+	}
+	return d, nil
 }
