@@ -11,13 +11,18 @@ import (
 	"time"
 
 	"RedisExp/pkg/conn"
+
 	"RedisExp/pkg/logger"
 
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 )
 
-func Echo(flag string) {
+var gbkBool = false
+
+func Echo(flag string, gbk bool) {
+	gbkBool = gbk
+
 	var ip, port, dir, dbfilename, webshell, sshkey string
 	var save, helloWebShell = "save", "helloWebShell"
 
@@ -86,9 +91,13 @@ func readString(str string) string {
 	str, _ = reader.ReadString('\n')
 	str = strings.TrimSpace(str)
 
-	gbk, _ := Utf8ToGbk([]byte(str))
+	if gbkBool {
+		gbk, _ := Utf8ToGbk([]byte(str))
 
-	return string(gbk)
+		return string(gbk)
+	}
+
+	return str
 }
 
 func Utf8ToGbk(s []byte) ([]byte, error) {

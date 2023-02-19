@@ -49,6 +49,8 @@ var (
 	gopher_ip string
 
 	gopher_file string
+
+	gbk bool
 )
 
 func init() {
@@ -87,6 +89,8 @@ func init() {
 	flag.BoolVar(&gopher_bool, "gopher", false, "生成 Gopher SSRF Payload ")
 	flag.StringVar(&gopher_ip, "gip", "127.0.0.1:6379", "指定 Gopher SSRF Payload 的 ip:port")
 	flag.StringVar(&gopher_file, "gf", "", "指定 Payload 文件来生成 Gopher")
+
+	flag.BoolVar(&gbk, "gbk", false, "Windows 中文路径要设置GBK")
 }
 
 func Help() {
@@ -212,12 +216,12 @@ RedisExp.exe -rhost 192.168.211.131 -cli
 		}
 
 	case shell: // 备份写shell
-		echo.Echo("getshell")
+		echo.Echo("getshell", gbk)
 
 	case crontab: // 定时任务反弹 Shell
-		echo.Echo("crontab")
+		echo.Echo("crontab", gbk)
 	case ssh: // 写 ssh 公钥
-		echo.Echo("ssh")
+		echo.Echo("ssh", gbk)
 
 	case cli: // 执行 Redis 命令
 		conn.LoopRedis(rhost, rport)
