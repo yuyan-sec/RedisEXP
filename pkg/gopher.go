@@ -1,4 +1,4 @@
-package gopher
+package pkg
 
 import (
 	"encoding/hex"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func GetGopher(ip string, strs []string) {
+func Gopher(ip string, strs []string) {
 	exp := ""
 
 	for _, str := range strs {

