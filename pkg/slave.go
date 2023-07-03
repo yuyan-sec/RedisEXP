@@ -3,7 +3,7 @@ package pkg
 import (
 	"context"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -88,7 +88,7 @@ func RedisUpload(lhost, lport, rpath, rfile, lfile string) {
 		os.Exit(0)
 	}
 
-	payload, err := io.ReadAll(f)
+	payload, err := ioutil.ReadAll(f)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(0)
