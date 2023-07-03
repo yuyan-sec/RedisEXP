@@ -1,5 +1,3 @@
-$ cat go-binary-release.yml
-
 name: build-go-binary
 
 on:
