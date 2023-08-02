@@ -11,7 +11,7 @@ import (
 // Listen 开启TCP端口
 func Listen(lhost, lport string, payload []byte) error {
 
-	addr := fmt.Sprintf("%v:%v", lhost, lport)
+	addr := fmt.Sprintf("0.0.0.0:%v", lport)
 	//fmt.Println(addr)
 
 	var wg sync.WaitGroup
