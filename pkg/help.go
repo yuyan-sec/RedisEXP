@@ -162,6 +162,9 @@ var gopherCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
+		if strings.EqualFold(lhost, "") {
+			lhost = "127.0.0.1"
+		}
 		Gopher(lhost+":"+lport, i)
 	},
 }
@@ -264,7 +267,7 @@ func init() {
 	luaCmd.Flags().StringVarP(&command, "cmd", "c", "", "单次执行 CVE-2022-0543 命令")
 	rootCmd.AddCommand(luaCmd)
 
-	gopherCmd.Flags().StringVarP(&lhost, "lhost", "L", "127.0.0.1", "本地IP")
+	gopherCmd.Flags().StringVarP(&lhost, "lhost", "L", "", "本地IP")
 	gopherCmd.Flags().StringVarP(&lport, "lport", "P", "6379", "本地端口")
 	gopherCmd.Flags().StringVarP(&lfile, "lfile", "f", "", "gopher 模板文件")
 	rootCmd.AddCommand(gopherCmd)
