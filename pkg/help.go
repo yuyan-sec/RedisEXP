@@ -2,16 +2,17 @@ package pkg
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 var (
 	rhost, rport, lhost, lport, pwd string
 	rpath, rfile, lfile             string
 	command, user, webshell         string
-	gbk                             bool
+	gbk, b64                        bool
 )
 
 var rootCmd = &cobra.Command{
@@ -244,6 +245,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&rport, "rport", "p", "6379", "目标端口")
 	rootCmd.PersistentFlags().StringVarP(&pwd, "pwd", "w", "", "Password")
 	rootCmd.PersistentFlags().BoolVarP(&gbk, "gbk", "g", false, "windows 中文路径设置")
+	rootCmd.PersistentFlags().BoolVarP(&b64, "base64", "b", false, "对webshell, ssh公钥等内容进行Base64解码")
 
 	cliCmd.Flags().StringVarP(&command, "cmd", "c", "", "单次执行 Redis 命令")
 	rootCmd.AddCommand(cliCmd)
@@ -254,6 +256,7 @@ func init() {
 	echoShellCmd.Flags().StringVarP(&rpath, "rpath", "d", "", "目标路径")
 	echoShellCmd.Flags().StringVarP(&rfile, "rfile", "f", "", "目标文件名")
 	echoShellCmd.Flags().StringVarP(&webshell, "data", "s", "", "webshell内容")
+
 	rootCmd.AddCommand(echoShellCmd)
 
 	echoSshCmd.Flags().StringVarP(&user, "user", "u", "", "输入 root 默认/root/.ssh/\\tkali 默认 /home/kali/.ssh/\\t可以自定义目录例如: /.ssh/")

