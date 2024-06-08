@@ -33,11 +33,11 @@ jobs:
 
       -
         name: "Create release on GitHub"
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           version: latest
-          args: "release --clean --debug -f .github/conf/.goreleaser.yml"
+          args: "release --clean -f .github/conf/.goreleaser.yml"
           workdir: .
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
