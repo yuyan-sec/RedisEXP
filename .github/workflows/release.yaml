@@ -1,28 +1,43 @@
-name: build-go-binary
+name: goreleaser
 
 on:
-  release:
-    types: [created,published] # 表示在创建新的 Release 时触发
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
 
 jobs:
-  build-go-binary:
+  goreleaser:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goos: [linux, windows, darwin] # 需要打包的系统
-        goarch: ["386", amd64, arm64] # 需要打包的架构
-        exclude: # 排除某些平台和架构
-          - goarch: "386"
-            goos: darwin
-          - goarch: arm64
-            goos: windows
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v3
-      - uses: wangyoucao577/go-release-action@v1.30
+      - name: "Check out code"
+        uses: actions/checkout@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }} # 一个默认的变量，用来实现往 Release 中添加文件
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          goversion: 1.20 # 可以指定编译使用的 Golang 版本
-          binary_name: "RedisExp" # 可以指定二进制文件的名称
-          extra_files: README.md # 需要包含的额外文件
+          fetch-depth: 0
+
+      - name: "Set up Go"
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.4
+      -
+        name: Install UPX
+        uses: crazy-max/ghaction-upx@v3
+        with:
+          install-only: true
+
+      - name: UPX version
+        run: upx --version
+
+      -
+        name: "Create release on GitHub"
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: latest
+          args: "release --clean --debug -f .github/conf/.goreleaser.yml"
+          workdir: .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
