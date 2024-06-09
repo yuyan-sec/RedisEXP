@@ -55,14 +55,11 @@ func Gopher(ip string, strs []string) {
 			redis_resps = append(redis_resps, word)
 		}
 
-		// fmt.Println(redis_resps)
 		tmp_line := "*" + strconv.Itoa(len(redis_resps)) + "\r\n"
 
-		// fmt.Println(tmp_line)
 		for _, word := range redis_resps {
 			tmp_line += "$" + strconv.Itoa(len(word)) + "\r\n" + word + "\r\n"
 		}
-		// fmt.Print(tmp_line)
 
 		for _, v := range tmp_line {
 

