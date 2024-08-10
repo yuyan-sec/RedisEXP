@@ -55,10 +55,24 @@ func getRedisValue(cmd string) string {
 		return ""
 	}
 
+	// redis 4.x  5.x 获取的结果
 	if values, ok := result.([]interface{}); ok && len(values) > 1 {
 		if compression, ok := values[1].(string); ok {
 			return compression
 		}
 	}
+
+	// redis 6.x 的结果
+	if val, ok := result.(map[interface{}]interface{}); ok {
+
+		if strings.EqualFold(cmd, "config get dir") {
+			return val["dir"].(string)
+		}
+
+		if strings.EqualFold(cmd, "config get dbfilename") {
+			return val["dbfilename"].(string)
+		}
+	}
+
 	return ""
 }
