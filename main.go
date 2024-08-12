@@ -195,17 +195,17 @@ func main() {
 
 		case "dir":
 			if rpath == "." {
-				fmt.Println("参数错误: RedisExp.exe -m dir -r 目标IP -p 目标端口 -w 密码 -rp 文件路径")
+				fmt.Println("参数错误: RedisExp.exe -m dir -r 目标IP -p 目标端口 -w 密码 -rf 目标文件名")
 				return
 			}
-			res := configSet("dir", rpath)
+			res := configSet("dir", rfile)
 
 			if res == "ERR Changing directory: Not a directory" {
 				fmt.Println("文件存在", res)
 			} else if res == "ERR Changing directory: No such file or directory" {
 				fmt.Println("文件不存在", res)
 			} else {
-				fmt.Println("执行成功 config set dir", rpath)
+				fmt.Println("执行成功 config set dir", rfile)
 			}
 
 		default:

