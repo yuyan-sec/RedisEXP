@@ -194,7 +194,7 @@ func main() {
 			}
 
 		case "dir":
-			if rpath == "." {
+			if rfile == "." {
 				fmt.Println("参数错误: RedisExp.exe -m dir -r 目标IP -p 目标端口 -w 密码 -rf 目标文件名")
 				return
 			}
