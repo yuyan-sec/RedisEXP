@@ -193,7 +193,14 @@ func main() {
 			closeSlave(rfile)
 
 		case "bgsave":
+			bgErr := configGet("stop-writes-on-bgsave-error")
+			if bgErr != "no" {
+				cliInfo("config set stop-writes-on-bgsave-error no")
+			}
+
 			cliInfo("bgsave")
+
+			cliInfo("config set stop-writes-on-bgsave-error " + bgErr)
 
 		case "dir":
 			if rfile == "" {
