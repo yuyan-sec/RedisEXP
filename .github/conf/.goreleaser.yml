@@ -43,11 +43,11 @@ archives:
     name_template: >-
       {{- .ProjectName }}
       {{- if eq .Os "darwin"}}_mac
-      {{- else if eq .Os "linux"}}
-      {{- else if eq .Os "windows"}}
+      {{- else if eq .Os "linux"}}_linux
+      {{- else if eq .Os "windows"}}_windows
       {{- else }}_{{ .Os }}{{ end }}
-      {{- if eq .Arch "amd64" }}
-      {{- else if eq .Arch "386" }}32
+      {{- if eq .Arch "amd64" }}_amd64
+      {{- else if eq .Arch "386" }}_386
       {{- else }}_{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end -}}
 checksum:
