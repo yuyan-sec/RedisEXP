@@ -45,11 +45,21 @@ jobs:
       - name: "Create all.zip"
         run: |
           cd dist  # 进入构建输出目录
-          zip -r all.zip ./*  # 将所有文件打包成 all.zip
+          # 使用 find 命令获取所有二进制文件并重命名
+          for file in $(find . -type f -name "RedisEXP*"); do
+            # 获取平台和架构信息
+            os=$(echo $file | sed -E 's/.*_(darwin|linux|freebsd|solaris|windows)_.*/\1/')
+            arch=$(echo $file | sed -E 's/.*_(amd64|386|arm64|arm|mips|mipsle|mips64)_.*/\1/')
+            # 构建新的文件名
+            new_name="RedisEXP_${os}_${arch}$(echo $file | sed 's/.*\./\./')"
+            mv "$file" "$new_name"  # 重命名文件
+          done
+          # 最后将所有文件平铺打包成 all.zip
+          zip -r RedisExp_All.zip ./*  # 打包文件
 
-      - name: "Upload all.zip to GitHub Release"
+      - name: "Upload RedisExp_All.zip to GitHub Release"
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/all.zip  # 上传打包好的 ZIP 文件
+          files: dist/RedisExp_All.zip  # 上传打包好的 ZIP 文件
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
