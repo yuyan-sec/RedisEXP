@@ -42,23 +42,57 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Create all.zip"
+      - name: Rename and Zip binaries
         run: |
-          cd dist  # 进入构建输出目录
-          # 使用 find 命令获取所有二进制文件并重命名
+          # 进入构建输出目录
+          cd dist || exit 1
+
+          # 使用 find 命令查找所有二进制文件并重命名
           for file in $(find . -type f -name "RedisEXP*"); do
             # 获取平台和架构信息
             os=$(echo $file | sed -E 's/.*_(darwin|linux|freebsd|solaris|windows)_.*/\1/')
             arch=$(echo $file | sed -E 's/.*_(amd64|386|arm64|arm|mips|mipsle|mips64)_.*/\1/')
+            
             # 获取文件扩展名
             ext="${file##*.}"
-            # 构建新的文件名
-            new_name="RedisEXP_${os}_${arch}.${ext}"
-            # 重命名文件
-            mv "$file" "$new_name"
+            
+            # 获取文件的目录路径
+            dir=$(dirname "$file")
+            
+            # 提取文件名
+            filename=$(basename "$file")
+            
+            # 确保路径名和文件名没有重复部分
+            if [[ "$os" == "windows" ]]; then
+              new_name="${dir}/RedisEXP_${os}_${arch}.${ext}"
+            else
+              new_name="${dir}/RedisEXP_${os}_${arch}"
+            fi
+            
+            # 如果原文件名与新文件名相同，跳过重命名
+            if [[ "$filename" == "$(basename "$new_name")" ]]; then
+              echo "Skipping $file, the file name is already correct."
+            else
+              # 重命名文件
+              echo "Renaming $file to $new_name"
+              mv "$file" "$new_name"
+            fi
           done
-          # 最后将所有文件平铺打包成 all.zip
-          zip -r RedisExp_All.zip ./*  # 打包文件
+
+          # 仅选择所有重命名后的二进制文件进行打包，排除目录结构
+          echo "Creating all.zip with only renamed binary files"
+
+          # 使用 find 查找重命名后的文件并打包，使用 -j 参数来去除目录结构，同时避免文件名重复
+          find . -type f -name "RedisEXP_*" | while read -r file; do
+            # 生成唯一的文件名
+            base_name=$(basename "$file")
+            zip_name="RedisEXP_${base_name}"
+            
+            # 将文件添加到 zip
+            zip -j RedisEXP_All.zip "$file"
+          done
+
+          echo "RedisEXP_All.zip created successfully!"
 
       - name: "Upload RedisExp_All.zip to GitHub Release"
         uses: softprops/action-gh-release@v1
