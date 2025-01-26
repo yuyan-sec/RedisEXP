@@ -50,6 +50,31 @@ archives:
       {{- else if eq .Arch "386" }}_386
       {{- else }}_{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end -}}
+  - id: all
+    format: zip
+    name_template: "{{ .ProjectName }}_all"
+    files:
+      - "{{ .ProjectName }}_windows_386.exe"
+      - "{{ .ProjectName }}_windows_amd64.exe"
+      - "{{ .ProjectName }}_windows_arm64.exe"
+      - "{{ .ProjectName }}_windows_armv6.exe"
+      - "{{ .ProjectName }}_windows_armv7.exe"
+      - "{{ .ProjectName }}_linux_386"
+      - "{{ .ProjectName }}_linux_amd64"
+      - "{{ .ProjectName }}_linux_arm64"
+      - "{{ .ProjectName }}_linux_armv6"
+      - "{{ .ProjectName }}_linux_armv7"
+      - "{{ .ProjectName }}_linux_mips"
+      - "{{ .ProjectName }}_linux_mips64"
+      - "{{ .ProjectName }}_linux_mipsle"
+      - "{{ .ProjectName }}_mac_amd64"
+      - "{{ .ProjectName }}_mac_arm64"
+      - "{{ .ProjectName }}_freebsd_386"
+      - "{{ .ProjectName }}_freebsd_amd64"
+      - "{{ .ProjectName }}_freebsd_arm64"
+      - "{{ .ProjectName }}_freebsd_armv6"
+      - "{{ .ProjectName }}_freebsd_armv7"
+      - "{{ .ProjectName }}_solaris_amd64"
 checksum:
   name_template: 'checksums.txt'
 snapshot:
