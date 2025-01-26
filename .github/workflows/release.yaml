@@ -3,41 +3,53 @@ name: goreleaser
 on:
   push:
     tags:
-      - '*'
+      - '*'  # 触发推送所有 tag
 
 permissions:
-  contents: write
+  contents: write  # 允许修改 GitHub 内容
 
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 60  # 设置最大超时时间
+
     steps:
       - name: "Check out code"
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # 检出所有提交
 
       - name: "Set up Go"
         uses: actions/setup-go@v4
         with:
           go-version: '1.21.4'
-      -
-        name: Install UPX
+
+      - name: "Install UPX"
         uses: crazy-max/ghaction-upx@v3
         with:
           install-only: true
 
-      - name: UPX version
-        run: upx --version
+      - name: "UPX version"
+        run: upx --version  # 打印 UPX 版本，确认安装
 
-      -
-        name: "Create release on GitHub"
+      - name: "Run GoReleaser"
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           version: latest
-          args: "release --clean -f .github/conf/.goreleaser.yml"
+          args: "release --clean -f .github/conf/.goreleaser.yml"  # 使用自定义的 goreleaser 配置文件
           workdir: .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Create all.zip"
+        run: |
+          cd dist  # 进入构建输出目录
+          zip -r all.zip ./*  # 将所有文件打包成 all.zip
+
+      - name: "Upload all.zip to GitHub Release"
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/all.zip  # 上传打包好的 ZIP 文件
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
