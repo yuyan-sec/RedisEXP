@@ -94,9 +94,12 @@ jobs:
 
           echo "RedisEXP_All.zip created successfully!"
 
+      - name: "List files in dist/"
+        run: ls -l dist/  # 确保文件确实存在
+        
       - name: "Upload RedisExp_All.zip to GitHub Release"
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/RedisExp_All.zip  # 上传打包好的 ZIP 文件
+          files: dist/RedisEXP_All.zip  # 确保文件名正确，包括大小写
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
